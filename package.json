@@ -27,6 +27,14 @@
   ],
   "author": "ccresume contributors",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sasazame/ccresume.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sasazame/ccresume/issues"
+  },
+  "homepage": "https://github.com/sasazame/ccresume#readme",
   "dependencies": {
     "clipboardy": "^4.0.0",
     "date-fns": "^3.3.1",
