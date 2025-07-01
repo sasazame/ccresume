@@ -1,6 +1,6 @@
 # ccresume
 
-A terminal user interface (TUI) tool for browsing and resuming Claude Code conversations.
+A character user interface (CUI) tool for browsing and resuming Claude Code conversations.
 
 **⚠️ DISCLAIMER: This is an unofficial third-party tool not affiliated with or endorsed by Anthropic. Use at your own risk.**
 
