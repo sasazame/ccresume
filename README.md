@@ -12,9 +12,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 
 - 📋 Browse all Claude Code conversations across projects
 - 🔍 View detailed conversation information
-- ⚡ Quick resume functionality with `claude --resume`
 - 📎 Copy session IDs to clipboard
-- 🎨 Color-coded interface for better readability
 
 ## Installation
 
@@ -44,11 +42,10 @@ Or if using npx:
 npx ccresume@latest
 ```
 
-**Important**: All command-line arguments are passed directly to the `claude` command when resuming a conversation.
-
 ### Passing Options to Claude
 
-All command-line arguments are passed directly to the `claude` command:
+**Important**: All command-line arguments are passed directly to the `claude` command when resuming a conversation.
+
 
 ```bash
 # Pass options to claude
@@ -59,26 +56,7 @@ ccresume --model claude-3-opus --temperature 0.7
 ```
 
 **⚠️ Warning**: Since all arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
-- Don't use `--resume` (ccresume handles this automatically)
-- Don't use options that change claude's interactive behavior
-
-### Keyboard Controls
-
-- **↑/↓** or **j/k** - Navigate through conversations
-- **Enter** - Copy session ID to clipboard
-- **r** - Resume the selected conversation with `claude --resume`
-- **q** or **Esc** - Quit the application
-
-### Conversation Details
-
-Each conversation displays:
-- **Project Name** - The name of the project
-- **Project Path** - Full path to the project directory
-- **Session ID** - Unique identifier for the conversation
-- **Start Time** - When the conversation began
-- **Duration** - How long the conversation lasted
-- **Messages** - Total number of messages exchanged
-- **Preview** - First and last messages in the conversation
+- Don't use options like `--resume` or something like that changes claude's interactive behavior
 
 ## Requirements
 
@@ -86,13 +64,6 @@ Each conversation displays:
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (with WSL)
 
-## How It Works
-
-ccresume reads conversation data from your Claude Code configuration directory:
-- **macOS/Linux**: `~/.config/claude/`
-- **Windows**: `%APPDATA%\claude\`
-
-The tool parses conversation JSON files and presents them in a user-friendly interface without modifying any data.
 
 ## Development
 
@@ -155,28 +126,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## Troubleshooting
-
-### Common Issues
-
-**"Claude Code not found"**
-- Ensure Claude Code is installed: `claude --version`
-- Check that Claude Code configuration exists in the expected directory
-
-**"No conversations found"**
-- Verify you have existing Claude Code conversations
-- Check file permissions on the Claude configuration directory
-
-**"Cannot resume conversation"**
-- Ensure you're in a git repository
-- Verify the conversation ID is valid
-
-## Security Considerations
-
-- ccresume only reads conversation data; it never modifies or deletes files
-- No data is sent to external servers
-- Conversation content remains local to your machine
-- The tool requires the same file system permissions as Claude Code
 
 ## Performance Considerations
 
@@ -190,12 +139,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 MIT
-
-## Acknowledgments
-
-- Built with [Ink](https://github.com/vadimdemedes/ink) for terminal UI
-- Uses [React](https://reactjs.org/) for component architecture
-- Styled with [Chalk](https://github.com/chalk/chalk) for terminal colors
 
 ## Support
 
