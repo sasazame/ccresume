@@ -19,13 +19,13 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 ### Via npx (Recommended)
 
 ```bash
-npx ccresume@latest
+npx @sasazame/ccresume@latest
 ```
 
 ### Global Installation
 
 ```bash
-npm install -g ccresume
+npm install -g @sasazame/ccresume
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ ccresume
 Or if using npx:
 
 ```bash
-npx ccresume@latest
+npx @sasazame/ccresume@latest
 ```
 
 ### Passing Options to Claude

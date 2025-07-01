@@ -1,5 +1,5 @@
 {
-  "name": "ccresume",
+  "name": "@sasazame/ccresume",
   "version": "0.1.0",
   "description": "A TUI tool for browsing and resuming Claude Code conversations",
   "type": "module",
