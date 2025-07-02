@@ -53,13 +53,13 @@ npx @sasazame/ccresume@latest
 ccresume --dangerously-skip-permissions
 
 # Multiple options
-ccresume --model claude-3-opus --temperature 0.7
+ccresume --model opus --dangerously-skip-permissions
 
 # Filter to current directory only
 ccresume .
 
 # Combine with claude options
-ccresume . --dangerously-skip-permissions
+ccresume . --model opus 
 ```
 
 **⚠️ Warning**: Since all arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
