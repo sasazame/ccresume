@@ -88,7 +88,7 @@ describe('messageUtils', () => {
         { type: 'text', text: 'More text' }
       ];
       
-      expect(extractMessageText(content as any)).toBe('Valid text\nMore text');
+      expect(extractMessageText(content as Array<{ type: string; text?: string }>)).toBe('Valid text\nMore text');
     });
 
     it('skips items without text property', () => {
@@ -108,7 +108,7 @@ describe('messageUtils', () => {
         { type: 'text', text: 'Known type' }
       ];
       
-      expect(extractMessageText(content as any)).toBe('Known type');
+      expect(extractMessageText(content as Array<{ type: string; text?: string; data?: string }>)).toBe('Known type');
     });
 
     it('handles empty array', () => {

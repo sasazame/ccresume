@@ -2,9 +2,9 @@ export interface Message {
   sessionId: string;
   timestamp: string;
   type: 'user' | 'assistant';
-  message: {
+  message?: {
     role: 'user' | 'assistant';
-    content?: string | Array<{ type: string; text?: string; name?: string; input?: any; tool_use_id?: string }>;
+    content?: string | Array<{ type: string; text?: string; name?: string; input?: unknown; tool_use_id?: string }>;
   };
   cwd: string;
   toolUseResult?: {

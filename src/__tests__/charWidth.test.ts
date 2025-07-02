@@ -4,7 +4,7 @@ describe('charWidth', () => {
   describe('getCharWidth', () => {
     it('returns 0 for empty string', () => {
       expect(getCharWidth('')).toBe(0);
-      expect(getCharWidth(null as any)).toBe(0);
+      expect(getCharWidth(null as unknown as string)).toBe(0);
     });
 
     it('returns 1 for ASCII characters', () => {
@@ -74,7 +74,7 @@ describe('charWidth', () => {
   describe('getStringWidth', () => {
     it('returns 0 for empty string', () => {
       expect(getStringWidth('')).toBe(0);
-      expect(getStringWidth(null as any)).toBe(0);
+      expect(getStringWidth(null as unknown as string)).toBe(0);
     });
 
     it('calculates width for ASCII strings', () => {
@@ -116,7 +116,7 @@ describe('charWidth', () => {
   describe('truncateStringByWidth', () => {
     it('returns empty string for empty input', () => {
       expect(truncateStringByWidth('', 10)).toBe('');
-      expect(truncateStringByWidth(null as any, 10)).toBe('');
+      expect(truncateStringByWidth(null as unknown as string, 10)).toBe('');
     });
 
     it('returns full string if within width', () => {

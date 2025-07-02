@@ -23,7 +23,7 @@ export function generateConversationSummary(conversation: Conversation): string 
   
   // Get the first meaningful user message (not the last)
   const firstUserMessage = userMessages[0];
-  const messageText = extractMessageText(firstUserMessage.message.content || '');
+  const messageText = extractMessageText(firstUserMessage.message?.content || '');
   
   // Clean up the message - remove ALL newlines, HTML tags, and normalize spaces
   const cleanedMessage = messageText
@@ -36,7 +36,7 @@ export function generateConversationSummary(conversation: Conversation): string 
   
   // If message is empty after cleaning, try the next one
   if (!cleanedMessage && userMessages.length > 1) {
-    const secondMessage = extractMessageText(userMessages[1].message.content || '');
+    const secondMessage = extractMessageText(userMessages[1].message?.content || '');
     return secondMessage
       .replace(/[\r\n]+/g, ' ')
       .replace(/<[^>]*>/g, '')
