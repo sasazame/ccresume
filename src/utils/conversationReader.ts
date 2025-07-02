@@ -6,7 +6,7 @@ import { extractMessageText } from './messageUtils.js';
 
 const CLAUDE_PROJECTS_DIR = join(homedir(), '.claude', 'projects');
 
-export async function getAllConversations(): Promise<Conversation[]> {
+export async function getAllConversations(currentDirFilter?: string): Promise<Conversation[]> {
   const conversations: Conversation[] = [];
   
   try {
@@ -26,9 +26,17 @@ export async function getAllConversations(): Promise<Conversation[]> {
       }
     }
     
+    // Filter by current directory if specified
+    let filteredConversations = conversations;
+    if (currentDirFilter) {
+      filteredConversations = conversations.filter(conv => 
+        conv.projectPath === currentDirFilter
+      );
+    }
+    
     // Remove duplicates based on sessionId
     const uniqueConversations = new Map<string, Conversation>();
-    for (const conv of conversations) {
+    for (const conv of filteredConversations) {
       const existing = uniqueConversations.get(conv.sessionId);
       if (!existing || conv.endTime > existing.endTime) {
         uniqueConversations.set(conv.sessionId, conv);
@@ -59,7 +67,17 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
       try {
         const data = JSON.parse(line);
         // Only include messages with proper structure
+        // Skip user messages that are tool results
         if (data && data.type && data.message && data.timestamp) {
+          // Check if it's a user message with tool_result content
+          if (data.type === 'user' && 
+              data.message.content && 
+              Array.isArray(data.message.content) && 
+              data.message.content.length > 0 &&
+              data.message.content[0].type === 'tool_result') {
+            // Skip tool result messages from user
+            continue;
+          }
           messages.push(data as Message);
         }
       } catch {
@@ -86,9 +104,10 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
       return null;
     }
     
-    // Find a valid session ID from messages
+    // Find a valid session ID from messages (use the last one found)
     let sessionId = '';
-    for (const msg of messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
       if (msg.sessionId && msg.sessionId !== 'undefined') {
         sessionId = msg.sessionId;
         break;
@@ -105,8 +124,8 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
       projectPath: messages[0].cwd || '',
       projectName,
       messages,
-      firstMessage: extractMessageText(userMessages[0].message.content),
-      lastMessage: extractMessageText(userMessages[userMessages.length - 1].message.content),
+      firstMessage: extractMessageText(userMessages[0].message?.content),
+      lastMessage: extractMessageText(userMessages[userMessages.length - 1].message?.content),
       startTime,
       endTime
     };

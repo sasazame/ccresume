@@ -9,9 +9,10 @@ import type { Conversation } from './types.js';
 
 interface AppProps {
   claudeArgs?: string[];
+  currentDirOnly?: boolean;
 }
 
-const App: React.FC<AppProps> = ({ claudeArgs = [] }) => {
+const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) => {
   const { exit } = useApp();
   const { stdout } = useStdout();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -23,7 +24,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [] }) => {
 
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [currentDirOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Update dimensions on terminal resize
@@ -47,7 +48,8 @@ const App: React.FC<AppProps> = ({ claudeArgs = [] }) => {
   const loadConversations = async () => {
     try {
       setLoading(true);
-      const convs = await getAllConversations();
+      const currentDir = currentDirOnly ? process.cwd() : undefined;
+      const convs = await getAllConversations(currentDir);
       setConversations(convs);
       setLoading(false);
     } catch (err) {
