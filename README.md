@@ -149,6 +149,6 @@ MIT
 
 ## Support
 
-For issues and feature requests, please use the [GitHub issue tracker](https://github.com/yourusername/ccresume/issues).
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/sasazame/ccresume/issues).
 
 Remember: This is an unofficial tool. For official Claude Code support, please refer to Anthropic's documentation.
