@@ -1,6 +1,6 @@
 {
   "name": "@sasazame/ccresume",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A TUI tool for browsing and resuming Claude Code conversations",
   "type": "module",
   "bin": {
