@@ -1,4 +1,4 @@
-export function extractMessageText(content: string | Array<{ type: string; text?: string; name?: string; input?: any }> | undefined | null): string {
+export function extractMessageText(content: string | Array<{ type: string; text?: string; name?: string; input?: unknown }> | undefined | null): string {
   if (!content) {
     return '';
   }
@@ -20,13 +20,14 @@ export function extractMessageText(content: string | Array<{ type: string; text?
         const toolName = item.name;
         let description = '';
         
-        if (item.input) {
-          if (item.input.command) {
-            description = item.input.command;
-          } else if (item.input.description) {
-            description = item.input.description;
-          } else if (item.input.prompt) {
-            description = item.input.prompt.substring(0, 100) + '...';
+        if (item.input && typeof item.input === 'object') {
+          const input = item.input as Record<string, unknown>;
+          if (typeof input.command === 'string') {
+            description = input.command;
+          } else if (typeof input.description === 'string') {
+            description = input.description;
+          } else if (typeof input.prompt === 'string') {
+            description = input.prompt.substring(0, 100) + '...';
           }
         }
         
@@ -34,6 +35,9 @@ export function extractMessageText(content: string | Array<{ type: string; text?
       } else if (item.type === 'tool_result') {
         // Handle tool results
         parts.push('[Tool Result]');
+      } else if (item.type === 'thinking') {
+        // Handle thinking messages
+        parts.push('[Thinking...]');
       }
     }
     

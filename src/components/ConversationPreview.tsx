@@ -51,7 +51,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
     } else {
       setScrollOffset(0);
     }
-  }, [conversation?.sessionId, maxVisibleMessages]);
+  }, [conversation?.sessionId, maxVisibleMessages, conversation?.messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   useInput((input, key) => {
@@ -97,7 +97,10 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
     );
   }
 
-  const messageCount = conversation.messages.filter(m => m.type === 'user').length;
+  // Count valid messages (with proper structure or tool results)
+  const messageCount = conversation.messages.filter(m => 
+    m && (m.message || m.toolUseResult)
+  ).length;
   const duration = conversation.endTime.getTime() - conversation.startTime.getTime();
   const durationMinutes = Math.round(duration / 1000 / 60);
   
@@ -131,7 +134,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         <Box flexDirection="column" height={maxVisibleMessages}>
           {visibleMessages.map((msg, index) => {
               // Skip messages without proper structure
-              if (!msg || !msg.message) {
+              if (!msg || (!msg.message && !msg.toolUseResult)) {
                 return null;
               }
               
@@ -139,20 +142,19 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
               let content = '';
               
               // Handle different message formats
-              if (msg.message.content) {
+              if (msg.message && msg.message.content) {
                 content = extractMessageText(msg.message.content);
               } else if (msg.toolUseResult) {
                 // Handle tool result messages
                 const result = msg.toolUseResult;
                 if (result.stdout) {
-                  content = `[Tool Output]\n${result.stdout}`;
+                  content = `[Tool Output] ${result.stdout.replace(/\n/g, ' ').trim()}`;
                 } else if (result.stderr) {
-                  content = `[Tool Error]\n${result.stderr}`;
+                  content = `[Tool Error] ${result.stderr.replace(/\n/g, ' ').trim()}`;
                 } else if (result.filenames && Array.isArray(result.filenames)) {
-                  content = `[Files Found: ${result.filenames.length}]\n${result.filenames.slice(0, 10).join('\n')}`;
-                  if (result.filenames.length > 10) {
-                    content += `\n... and ${result.filenames.length - 10} more`;
-                  }
+                  const fileList = result.filenames.slice(0, 5).join(', ');
+                  const moreCount = result.filenames.length > 5 ? ` ... and ${result.filenames.length - 5} more` : '';
+                  content = `[Files Found: ${result.filenames.length}] ${fileList}${moreCount}`;
                 } else {
                   content = '[Tool Result: No output]';
                 }
@@ -181,8 +183,11 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
               const availableWidth = safeWidth - headerLength;
               const truncatedContent = strictTruncateByWidth(firstLine, availableWidth);
               
+              // Use a combination of timestamp and index for unique key
+              const uniqueKey = `${msg.timestamp}-${scrollOffset + index}`;
+              
               return (
-                <Box key={index}>
+                <Box key={uniqueKey}>
                   <Text>
                     <Text color={isUser ? 'cyan' : 'green'} bold>{header}</Text>
                     {isToolMessage ? (
