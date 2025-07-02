@@ -86,12 +86,12 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
         
         // Small delay to show the message before clearing screen
         setTimeout(() => {
-          // Exit the app first to restore the screen
-          exit();
-          
-          // These will be printed after screen is restored
           console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
           console.log(`Directory: ${selectedConv.projectPath}`);
+          
+          // Clear the screen and exit the app
+          console.clear();
+          exit();
           
           // Spawn claude process in the project directory with passed arguments
           const claude = spawn('claude', commandArgs, {

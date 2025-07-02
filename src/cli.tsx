@@ -55,10 +55,8 @@ if (filteredArgs.includes('--version') || filteredArgs.includes('-v')) {
 
 const claudeArgs = filteredArgs;
 
-// Enter alternate screen buffer (like less)
-process.stdout.write('\x1b[?1049h');
-// Clear the screen
-process.stdout.write('\x1b[2J\x1b[H');
+// Clear the screen before rendering
+console.clear();
 
 // Render the app in fullscreen mode
 const { unmount } = render(<App claudeArgs={claudeArgs} currentDirOnly={currentDirOnly} />, {
@@ -66,18 +64,6 @@ const { unmount } = render(<App claudeArgs={claudeArgs} currentDirOnly={currentD
 });
 
 // Handle graceful exit
-const cleanup = () => {
+process.on('exit', () => {
   unmount();
-  // Leave alternate screen buffer (restore original screen)
-  process.stdout.write('\x1b[?1049l');
-};
-
-process.on('exit', cleanup);
-process.on('SIGINT', () => {
-  cleanup();
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  cleanup();
-  process.exit(0);
 });
