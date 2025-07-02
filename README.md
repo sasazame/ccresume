@@ -13,6 +13,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 📋 Browse all Claude Code conversations across projects
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
+- 📁 Filter conversations to current directory with `.` argument
 
 ## Installation
 
@@ -53,6 +54,12 @@ ccresume --dangerously-skip-permissions
 
 # Multiple options
 ccresume --model claude-3-opus --temperature 0.7
+
+# Filter to current directory only
+ccresume .
+
+# Combine with claude options
+ccresume . --dangerously-skip-permissions
 ```
 
 **⚠️ Warning**: Since all arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
