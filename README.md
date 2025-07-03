@@ -2,6 +2,8 @@
 
 A character user interface (CUI) tool for browsing and resuming Claude Code conversations.
 
+![ccresume screenshot](docs/images/demo-screenshot.png)
+
 **⚠️ DISCLAIMER: This is an unofficial third-party tool not affiliated with or endorsed by Anthropic. Use at your own risk.**
 
 ## Overview
@@ -14,6 +16,8 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
 - 📁 Filter conversations to current directory with `.` argument
+
+![ccresume demo](docs/images/demo.gif)
 
 ## Installation
 
