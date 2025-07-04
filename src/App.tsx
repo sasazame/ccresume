@@ -86,45 +86,50 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
         
         // Small delay to show the message before clearing screen
         setTimeout(() => {
-          console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
-          console.log(`Directory: ${selectedConv.projectPath}`);
-          
-          // Clear the screen and exit the app
-          console.clear();
+          // First restore the screen by exiting the app
           exit();
           
-          // Spawn claude process in the project directory with passed arguments
-          const claude = spawn('claude', commandArgs, {
-            stdio: 'inherit',
-            cwd: selectedConv.projectPath,  // This sets the working directory for the child process
-            shell: true
-          });
-          
-          claude.on('error', (err) => {
-            console.error('\nFailed to resume conversation:', err.message);
-            console.error('Make sure Claude Code is installed and available in PATH');
-            console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
+          // Wait a bit for the screen to be restored before spawning claude
+          setTimeout(() => {
+            // Print execution info first
+            console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
+            console.log(`Directory: ${selectedConv.projectPath}`);
+            console.log(`Executing: ${commandStr}`);
+            console.log('\nStarting Claude Code...');
             
-            // Fallback: copy session ID to clipboard
-            try {
-              clipboardy.writeSync(selectedConv.sessionId);
-              console.log(`\nSession ID copied to clipboard: ${selectedConv.sessionId}`);
-              console.log(`Project directory: ${selectedConv.projectPath}`);
-              console.log(`You can manually run:`);
-              console.log(`  cd "${selectedConv.projectPath}"`);
-              const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
-              console.log(`  claude ${argsStr}--resume ${selectedConv.sessionId}`);
-            } catch (clipErr) {
-              console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
-            }
+            // Spawn claude process in the project directory with passed arguments
+            const claude = spawn('claude', commandArgs, {
+              stdio: 'inherit',
+              cwd: selectedConv.projectPath,  // This sets the working directory for the child process
+              shell: true
+            });
             
-            process.exit(1);
-          });
-          
-          claude.on('close', (code) => {
-            // The parent process directory remains unchanged
-            process.exit(code || 0);
-          });
+            claude.on('error', (err) => {
+              console.error('\nFailed to resume conversation:', err.message);
+              console.error('Make sure Claude Code is installed and available in PATH');
+              console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
+              
+              // Fallback: copy session ID to clipboard
+              try {
+                clipboardy.writeSync(selectedConv.sessionId);
+                console.log(`\nSession ID copied to clipboard: ${selectedConv.sessionId}`);
+                console.log(`Project directory: ${selectedConv.projectPath}`);
+                console.log(`You can manually run:`);
+                console.log(`  cd "${selectedConv.projectPath}"`);
+                const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
+                console.log(`  claude ${argsStr}--resume ${selectedConv.sessionId}`);
+              } catch (clipErr) {
+                console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
+              }
+              
+              process.exit(1);
+            });
+            
+            claude.on('close', (code) => {
+              // The parent process directory remains unchanged
+              process.exit(code || 0);
+            });
+          }, 300); // Give more time for alternate screen to be fully restored
         }, 500); // Show status message for 500ms before executing
       }
     }
