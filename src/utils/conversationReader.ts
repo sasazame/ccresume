@@ -62,6 +62,10 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
       return null;
     }
     
+    // Extract session ID from filename
+    const filename = filePath.split('/').pop() || '';
+    const filenameSessionId = filename.replace('.jsonl', '');
+    
     const messages: Message[] = [];
     for (const line of lines) {
       try {
@@ -104,18 +108,13 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
       return null;
     }
     
-    // Find a valid session ID from messages (use the last one found)
-    let sessionId = '';
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i];
-      if (msg.sessionId && msg.sessionId !== 'undefined') {
-        sessionId = msg.sessionId;
-        break;
-      }
-    }
+    // Use session ID from filename as it's what Claude expects for --resume
+    // The filename is the original session ID that Claude uses for resuming
+    const sessionId = filenameSessionId;
     
-    // Skip if no valid session ID found
-    if (!sessionId) {
+    // Validate that it looks like a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!sessionId || !uuidRegex.test(sessionId)) {
       return null;
     }
     
