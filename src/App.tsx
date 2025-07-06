@@ -138,7 +138,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
           // Show temporary status message
           setStatusMessage('✓ Session ID copied to clipboard!');
           setTimeout(() => setStatusMessage(null), 2000);
-        } catch (err) {
+        } catch {
           setStatusMessage('✗ Failed to copy to clipboard');
           setTimeout(() => setStatusMessage(null), 2000);
         }
