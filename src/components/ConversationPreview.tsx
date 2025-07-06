@@ -112,7 +112,8 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   const messageCount = conversation.messages.filter(m => 
     m && (m.message || m.toolUseResult)
   ).length;
-  const durationMinutes = conversation.durationMinutes;
+  const duration = conversation.endTime.getTime() - conversation.startTime.getTime();
+  const durationMinutes = Math.round(duration / 1000 / 60);
   
   const visibleMessages = conversation.messages.slice(scrollOffset, scrollOffset + maxVisibleMessages);
   

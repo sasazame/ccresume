@@ -19,15 +19,15 @@ export interface Config {
 export const defaultConfig: Config = {
   keybindings: {
     quit: ['q'],
-    selectPrevious: ['up', 'k'],
-    selectNext: ['down', 'j'],
-    confirm: ['enter', 'return'],
+    selectPrevious: ['up'],
+    selectNext: ['down'],
+    confirm: ['enter'],
     copySessionId: ['c'],
-    scrollUp: ['k', 'ctrl+p'],
-    scrollDown: ['j', 'ctrl+n'],
-    scrollPageUp: ['u', 'ctrl+u', 'pageup'],
-    scrollPageDown: ['d', 'ctrl+d', 'pagedown'],
+    scrollUp: ['k'],
+    scrollDown: ['j'],
+    scrollPageUp: ['u', 'pageup'],
+    scrollPageDown: ['d', 'pagedown'],
     scrollTop: ['g'],
-    scrollBottom: ['G', 'shift+g'],
+    scrollBottom: ['G'],
   },
 };

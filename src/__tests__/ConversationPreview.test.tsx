@@ -59,7 +59,7 @@ describe('ConversationPreview', () => {
     );
     
     expect(lastFrame()).toContain('Conversation History');
-    expect(lastFrame()).toContain('2 messages');
+    expect(lastFrame()).toContain('(2 messages, 30 min)');
     expect(lastFrame()).toContain('Session:');
     expect(lastFrame()).toContain('12345678-1234-1234-1234-123456789012');
     expect(lastFrame()).toContain('Directory:');

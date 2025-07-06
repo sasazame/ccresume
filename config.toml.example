@@ -6,19 +6,19 @@
 quit = ["q"]
 
 # Navigate conversation list
-selectPrevious = ["up", "k"]
-selectNext = ["down", "j"]
+selectPrevious = ["up"]
+selectNext = ["down"]
 
 # Confirm selection (resume conversation)
-confirm = ["enter", "return"]
+confirm = ["enter"]
 
 # Copy session ID to clipboard
 copySessionId = ["c"]
 
 # Scroll controls for conversation preview
-scrollUp = ["k", "ctrl+p"]
-scrollDown = ["j", "ctrl+n"]
-scrollPageUp = ["u", "ctrl+u", "pageup"]
-scrollPageDown = ["d", "ctrl+d", "pagedown"]
+scrollUp = ["k"]
+scrollDown = ["j"]
+scrollPageUp = ["u", "pageup"]
+scrollPageDown = ["d", "pagedown"]
 scrollTop = ["g"]
-scrollBottom = ["G", "shift+g"]
+scrollBottom = ["G"]
