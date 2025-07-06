@@ -1,0 +1,25 @@
+# This file defines code ownership for automatic PR review assignments
+# Syntax: [pattern] [owner1] [owner2] ...
+# Later matches take precedence
+
+# Default owner for everything in the repo
+* @sasazame
+
+# Documentation
+*.md @sasazame
+docs/ @sasazame
+
+# CI/CD configuration
+.github/ @sasazame
+*.yml @sasazame
+*.yaml @sasazame
+
+# Source code
+src/ @sasazame
+tests/ @sasazame
+
+# Configuration files
+package.json @sasazame
+tsconfig.json @sasazame
+.eslintrc* @sasazame
+.prettierrc* @sasazame
