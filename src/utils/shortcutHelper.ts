@@ -26,6 +26,7 @@ export function getShortcutText(config: Config): string {
   };
   
   // Build shortcuts in logical groups
+  shortcuts.push(`Select: ${formatKeys(config.keybindings.selectPrevious)}/${formatKeys(config.keybindings.selectNext)}`);
   shortcuts.push(`Scroll: ${formatKeys(config.keybindings.scrollUp)}/${formatKeys(config.keybindings.scrollDown)}`);
   shortcuts.push(`Page: ${formatKeys(config.keybindings.scrollPageDown)}/${formatKeys(config.keybindings.scrollPageUp)}`);
   shortcuts.push(`Top: ${formatKeys(config.keybindings.scrollTop)}`);
