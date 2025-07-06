@@ -10,12 +10,14 @@ interface ConversationListProps {
   conversations: Conversation[];
   selectedIndex: number;
   maxVisible?: number;
+  isLoading?: boolean;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({ 
   conversations, 
   selectedIndex,
-  maxVisible = 3
+  maxVisible = 3,
+  isLoading = false
 }) => {
   const { stdout } = useStdout();
   const terminalWidth = stdout?.columns || 80;
@@ -43,9 +45,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   return (
     <Box flexDirection="column" borderStyle="single" borderColor="cyan" paddingX={1} width="100%" overflow="hidden">
-      <Text bold color="cyan">Select a conversation ({conversations.length} total):</Text>
+      <Text bold color="cyan">{isLoading ? 'Loading conversations...' : `Select a conversation${conversations.length > 0 ? ` (${conversations.length} shown)` : ''}:`}</Text>
       
-      {conversations.length === 0 ? (
+      {isLoading ? (
+        <Box flexDirection="column" height={maxVisible}>
+        </Box>
+      ) : conversations.length === 0 ? (
         <Text color="gray">No conversations found</Text>
       ) : (
         visibleConversations.map((conv, visibleIndex) => {
@@ -93,7 +98,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       
       {hasMoreBelow && (
         <Box width="100%">
-          <Text color="cyan">↓ {conversations.length - endIndex} more...</Text>
+          <Text color="cyan">↓ {conversations.length - endIndex} more on this page...</Text>
         </Box>
       )}
     </Box>

@@ -22,3 +22,7 @@ scrollPageUp = ["u", "pageup"]
 scrollPageDown = ["d", "pagedown"]
 scrollTop = ["g"]
 scrollBottom = ["G"]
+
+# Pagination controls
+pageNext = ["right", "n"]
+pagePrevious = ["left", "p"]

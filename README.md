@@ -92,6 +92,8 @@ ccresume . --model opus
 | Page Down | `d`, `PageDown` |
 | Scroll to Top | `g` |
 | Scroll to Bottom | `G` |
+| Next Page | `→`, `n` |
+| Previous Page | `←`, `p` |
 
 ### Custom Key Bindings
 
@@ -110,6 +112,8 @@ scrollPageUp = ["b", "ctrl+b"]
 scrollPageDown = ["f", "ctrl+f"]
 scrollTop = ["g"]
 scrollBottom = ["shift+g"]
+pageNext = ["right", "n"]
+pagePrevious = ["left", "p"]
 ```
 
 See `config.toml.example` in the repository for a complete example.
@@ -178,12 +182,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Performance Considerations
 
-- ccresume currently loads all conversations on startup
-- With a large number of conversations (1000+), initial loading may take a few seconds
-- Future improvements may include:
-  - Pagination or lazy loading for better performance with large datasets
-  - Configurable limits on the number of conversations displayed
-  - Caching mechanisms for faster repeated access
+- ccresume uses lazy loading and pagination to handle large numbers of conversations efficiently
+- Only 30 conversations are loaded at a time, providing fast startup even with thousands of conversations
+- Navigate between pages using the arrow keys (← →) or custom keybindings
+- The tool automatically detects the total number of conversations without loading them all
 
 ## License
 

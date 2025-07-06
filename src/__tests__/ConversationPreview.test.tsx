@@ -50,7 +50,8 @@ describe('ConversationPreview', () => {
       <ConversationPreview conversation={null} />
     );
     
-    expect(lastFrame()).toContain('Select a conversation to preview');
+    // Should render an empty box without text
+    expect(lastFrame()).not.toContain('Select a conversation to preview');
   });
 
   it('renders conversation header correctly', () => {
@@ -343,8 +344,8 @@ describe('ConversationPreview', () => {
       stdin.write('g');
       stdin.write('G');
       
-      // Should still show empty state
-      expect(lastFrame()).toContain('Select a conversation to preview');
+      // Should still show empty state (no text)
+      expect(lastFrame()).not.toContain('Select a conversation to preview');
     });
   });
 

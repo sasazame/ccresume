@@ -42,7 +42,7 @@ describe('ConversationList', () => {
       />
     );
     
-    expect(lastFrame()).toContain('Select a conversation (1 total)');
+    expect(lastFrame()).toContain('Select a conversation (1 shown):');
     // Session ID is no longer displayed in the list
     expect(lastFrame()).not.toContain('[12345678]');
     expect(lastFrame()).toContain('/home/user/project'); // Full project path (shortening only works for actual home directory)
@@ -81,6 +81,6 @@ describe('ConversationList', () => {
       />
     );
     
-    expect(lastFrame()).toContain('↓ 7 more...');
+    expect(lastFrame()).toContain('↓ 7 more on this page...');
   });
 });
