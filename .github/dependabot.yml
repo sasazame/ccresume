@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     reviewers:
       - "sasazame"
     labels:
@@ -16,6 +16,28 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    groups:
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "typescript-eslint"
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      testing:
+        patterns:
+          - "jest*"
+          - "@types/jest"
+          - "ts-jest"
+          - "*testing*"
+    ignore:
+      # Ink doesn't support React 19 yet
+      - dependency-name: "react"
+        versions: [">=19.0.0"]
+      - dependency-name: "@types/react"
+        versions: [">=19.0.0"]
     
   # Keep GitHub Actions up to date
   - package-ecosystem: "github-actions"
