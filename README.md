@@ -71,7 +71,7 @@ ccresume . --model opus
 
 ## Requirements
 
-- **Node.js** >= 16
+- **Node.js** >= 18
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (with WSL)
 
