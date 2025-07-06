@@ -1,0 +1,28 @@
+# ccresume configuration file
+# Copy this file to ~/.config/ccresume/config.toml and customize as needed
+
+[keybindings]
+# Exit the application
+quit = ["q"]
+
+# Navigate conversation list
+selectPrevious = ["up"]
+selectNext = ["down"]
+
+# Confirm selection (resume conversation)
+confirm = ["enter"]
+
+# Copy session ID to clipboard
+copySessionId = ["c"]
+
+# Scroll controls for conversation preview
+scrollUp = ["k"]
+scrollDown = ["j"]
+scrollPageUp = ["u", "pageup"]
+scrollPageDown = ["d", "pagedown"]
+scrollTop = ["g"]
+scrollBottom = ["G"]
+
+# Pagination controls
+pageNext = ["right", "n"]
+pagePrevious = ["left", "p"]
