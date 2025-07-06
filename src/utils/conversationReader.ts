@@ -1,10 +1,100 @@
-import { readdir, readFile } from 'fs/promises';
+import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { homedir } from 'os';
 import type { Conversation, Message } from '../types.js';
 import { extractMessageText } from './messageUtils.js';
 
 const CLAUDE_PROJECTS_DIR = join(homedir(), '.claude', 'projects');
+
+interface PaginationOptions {
+  limit: number;
+  offset: number;
+  currentDirFilter?: string;
+}
+
+
+
+// Helper function to convert project path to Claude directory name
+function pathToClaudeDir(path: string): string {
+  // Claude's conversion: / becomes -, and . also becomes -
+  return path.replace(/[/.]/g, '-');
+}
+
+// Get paginated conversations with lazy loading
+export async function getPaginatedConversations(options: PaginationOptions): Promise<{
+  conversations: Conversation[];
+  total: number;
+}> {
+  // First, just get file paths and stats without reading content
+  const allFiles: Array<{path: string, dir: string, mtime: Date}> = [];
+  
+  try {
+    const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
+    
+    // If filtering by directory, convert the filter path to Claude's directory name format
+    const targetDir = options.currentDirFilter ? pathToClaudeDir(options.currentDirFilter) : null;
+    
+    for (const projectDir of projectDirs) {
+      // Skip directories that don't match the filter early
+      if (targetDir && projectDir !== targetDir) {
+        continue;
+      }
+      
+      const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
+      const dirFiles = await readdir(projectPath);
+      const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') && 
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i.test(f));
+      
+      for (const file of jsonlFiles) {
+        const filePath = join(projectPath, file);
+        const stats = await stat(filePath);
+        allFiles.push({
+          path: filePath,
+          dir: projectDir,
+          mtime: stats.mtime
+        });
+      }
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { conversations: [], total: 0 };
+    }
+    throw error;
+  }
+  
+  // Sort by modification time (newest first)
+  allFiles.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+  
+  const conversations: Conversation[] = [];
+  let skippedCount = 0;
+  let fileIndex = 0;
+  
+  // Skip files based on offset
+  while (skippedCount < options.offset && fileIndex < allFiles.length) {
+    const file = allFiles[fileIndex];
+    const conversation = await readConversation(file.path, file.dir);
+    
+    if (conversation) {
+      skippedCount++;
+    }
+    fileIndex++;
+  }
+  
+  // Collect conversations for the current page
+  while (conversations.length < options.limit && fileIndex < allFiles.length) {
+    const file = allFiles[fileIndex];
+    const conversation = await readConversation(file.path, file.dir);
+    
+    if (conversation) {
+      conversations.push(conversation);
+    }
+    fileIndex++;
+  }
+  
+  // For total count, we'll return -1 to indicate unknown
+  // The UI can handle this by not showing total pages
+  return { conversations, total: -1 };
+}
 
 export async function getAllConversations(currentDirFilter?: string): Promise<Conversation[]> {
   const conversations: Conversation[] = [];
@@ -34,17 +124,10 @@ export async function getAllConversations(currentDirFilter?: string): Promise<Co
       );
     }
     
-    // Remove duplicates based on sessionId
-    const uniqueConversations = new Map<string, Conversation>();
-    for (const conv of filteredConversations) {
-      const existing = uniqueConversations.get(conv.sessionId);
-      if (!existing || conv.endTime > existing.endTime) {
-        uniqueConversations.set(conv.sessionId, conv);
-      }
-    }
-    
-    return Array.from(uniqueConversations.values())
+    const result = filteredConversations
       .sort((a, b) => b.endTime.getTime() - a.endTime.getTime());
+    
+    return result;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return [];
@@ -94,37 +177,23 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
     }
     
     const userMessages = messages.filter(m => m.type === 'user');
-    if (userMessages.length === 0) {
-      return null;
-    }
     
     const projectName = projectDir.replace(/^-/, '').split('-').join('/');
     
     const startTime = new Date(messages[0].timestamp);
     const endTime = new Date(messages[messages.length - 1].timestamp);
     
-    // Skip conversations with invalid dates
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      return null;
-    }
     
     // Use session ID from filename as it's what Claude expects for --resume
-    // The filename is the original session ID that Claude uses for resuming
     const sessionId = filenameSessionId;
-    
-    // Validate that it looks like a valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!sessionId || !uuidRegex.test(sessionId)) {
-      return null;
-    }
     
     return {
       sessionId,
       projectPath: messages[0].cwd || '',
       projectName,
       messages,
-      firstMessage: extractMessageText(userMessages[0].message?.content),
-      lastMessage: extractMessageText(userMessages[userMessages.length - 1].message?.content),
+      firstMessage: userMessages.length > 0 ? extractMessageText(userMessages[0].message?.content) : '',
+      lastMessage: userMessages.length > 0 ? extractMessageText(userMessages[userMessages.length - 1].message?.content) : '',
       startTime,
       endTime
     };

@@ -10,6 +10,8 @@ export interface KeyBindings {
   scrollPageDown: string[];
   scrollTop: string[];
   scrollBottom: string[];
+  pageNext: string[];
+  pagePrevious: string[];
 }
 
 export interface Config {
@@ -29,5 +31,7 @@ export const defaultConfig: Config = {
     scrollPageDown: ['d', 'pagedown'],
     scrollTop: ['g'],
     scrollBottom: ['G'],
+    pageNext: ['right'],
+    pagePrevious: ['left'],
   },
 };

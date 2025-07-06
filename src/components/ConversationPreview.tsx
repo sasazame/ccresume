@@ -103,7 +103,6 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   if (!conversation) {
     return (
       <Box borderStyle="single" borderColor="gray" paddingX={1} flexGrow={1}>
-        <Text color="gray">Select a conversation to preview</Text>
       </Box>
     );
   }

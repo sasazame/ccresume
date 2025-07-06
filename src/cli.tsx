@@ -31,6 +31,7 @@ All other options are passed to claude when resuming a conversation.
 
 Keyboard Controls:
   ↑/↓           Navigate conversations list
+  ←/→           Navigate between pages
   j/k           Scroll chat history  
   Enter         Resume selected conversation
   c             Copy session ID
