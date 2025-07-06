@@ -84,8 +84,8 @@ describe('ConversationPreview', () => {
     );
     
     expect(lastFrame()).toContain('Scroll:');
-    expect(lastFrame()).toContain('Enter: resume');
-    expect(lastFrame()).toContain('quit');
+    expect(lastFrame()).toContain('Resume:');
+    expect(lastFrame()).toContain('Quit:');
   });
 
   it('shows navigation help for long conversations', () => {
