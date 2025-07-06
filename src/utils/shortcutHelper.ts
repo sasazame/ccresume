@@ -31,9 +31,9 @@ export function getShortcutText(config: Config): string {
   shortcuts.push(`Page: ${formatKeys(config.keybindings.scrollPageDown)}/${formatKeys(config.keybindings.scrollPageUp)}`);
   shortcuts.push(`Top: ${formatKeys(config.keybindings.scrollTop)}`);
   shortcuts.push(`Bottom: ${formatKeys(config.keybindings.scrollBottom)}`);
-  shortcuts.push(`Enter: resume`);
-  shortcuts.push(`${formatKeys(config.keybindings.copySessionId)}: copy session ID`);
-  shortcuts.push(`${formatKeys(config.keybindings.quit)}: quit`);
+  shortcuts.push(`Resume: ${formatKeys(config.keybindings.confirm)}`);
+  shortcuts.push(`Copy session ID: ${formatKeys(config.keybindings.copySessionId)}`);
+  shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
   
   return shortcuts.join(' • ');
 }
