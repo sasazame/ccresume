@@ -75,6 +75,44 @@ ccresume . --model opus
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (with WSL)
 
+## Keyboard Controls
+
+### Default Key Bindings
+
+| Action | Keys |
+|--------|------|
+| Quit | `q` |
+| Select Previous | `↑` |
+| Select Next | `↓` |
+| Confirm/Resume | `Enter` |
+| Copy Session ID | `c` |
+| Scroll Up | `k` |
+| Scroll Down | `j` |
+| Page Up | `u`, `PageUp` |
+| Page Down | `d`, `PageDown` |
+| Scroll to Top | `g` |
+| Scroll to Bottom | `G` |
+
+### Custom Key Bindings
+
+You can customize key bindings by creating a configuration file at `~/.config/ccresume/config.toml`:
+
+```toml
+[keybindings]
+quit = ["q", "ctrl+c", "esc"]
+selectPrevious = ["up", "k"]
+selectNext = ["down", "j"]
+confirm = ["enter", "l"]
+copySessionId = ["y"]
+scrollUp = ["u", "ctrl+u"]
+scrollDown = ["d", "ctrl+d"]
+scrollPageUp = ["b", "ctrl+b"]
+scrollPageDown = ["f", "ctrl+f"]
+scrollTop = ["g"]
+scrollBottom = ["shift+g"]
+```
+
+See `config.toml.example` in the repository for a complete example.
 
 ## Development
 

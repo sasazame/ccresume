@@ -4,6 +4,10 @@ import { format } from 'date-fns';
 import type { Conversation } from '../types.js';
 import { extractMessageText } from '../utils/messageUtils.js';
 import { strictTruncateByWidth } from '../utils/strictTruncate.js';
+import { loadConfig } from '../utils/configLoader.js';
+import { matchesKeyBinding } from '../utils/keyBindingHelper.js';
+import { getShortcutText } from '../utils/shortcutHelper.js';
+import type { Config } from '../types/config.js';
 
 interface ConversationPreviewProps {
   conversation: Conversation | null;
@@ -14,10 +18,17 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
   const terminalWidth = stdout?.columns || 80;
+  const [config, setConfig] = useState<Config | null>(null);
   
   // Calculate available height for messages dynamically
   const [maxVisibleMessages, setMaxVisibleMessages] = useState(10);
   
+  useEffect(() => {
+    // Load config on mount
+    const loadedConfig = loadConfig();
+    setConfig(loadedConfig);
+  }, []);
+
   useEffect(() => {
     // Adjust visible messages based on terminal height
     const terminalHeight = stdout?.rows || 24;
@@ -55,35 +66,35 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
 
 
   useInput((input, key) => {
-    if (!conversation) return;
+    if (!conversation || !config) return;
     
     const totalMessages = conversation.messages.length;
     const maxOffset = Math.max(0, totalMessages - maxVisibleMessages);
     
-    // Top (simplified - just 'g')
-    if (input === 'g') {
+    // Top
+    if (matchesKeyBinding(input, key, config.keybindings.scrollTop)) {
       setScrollOffset(0);
       return;
     }
     
-    // Page scrolling (less/Vim style)
-    if (key.pageDown || input === 'd' || key.ctrl && input === 'd') {
+    // Page scrolling
+    if (matchesKeyBinding(input, key, config.keybindings.scrollPageDown)) {
       setScrollOffset(prev => Math.min(prev + Math.floor(maxVisibleMessages / 2), maxOffset));
     }
-    if (key.pageUp || input === 'u' || key.ctrl && input === 'u') {
+    if (matchesKeyBinding(input, key, config.keybindings.scrollPageUp)) {
       setScrollOffset(prev => Math.max(prev - Math.floor(maxVisibleMessages / 2), 0));
     }
     
-    // Line scrolling (Vim style - j/k only, no arrow keys)
-    if (input === 'j' || key.ctrl && input === 'n') {
+    // Line scrolling
+    if (matchesKeyBinding(input, key, config.keybindings.scrollDown)) {
       setScrollOffset(prev => Math.min(prev + 1, maxOffset));
     }
-    if (input === 'k' || key.ctrl && input === 'p') {
+    if (matchesKeyBinding(input, key, config.keybindings.scrollUp)) {
       setScrollOffset(prev => Math.max(prev - 1, 0));
     }
     
-    // Bottom (Vim style)
-    if (input === 'G' || (key.shift && input === 'g')) {
+    // Bottom
+    if (matchesKeyBinding(input, key, config.keybindings.scrollBottom)) {
       setScrollOffset(maxOffset);
     }
     
@@ -206,10 +217,12 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
       <Box paddingX={1} marginTop={1}>
         {statusMessage ? (
           <Text color="green" bold>{statusMessage}</Text>
-        ) : (
+        ) : config ? (
           <Text color="magenta">
-            Scroll: j/k • Page: d/u PgDn/PgUp • Top: g • Bottom: G • Enter: resume • c: copy session ID • q: quit
+            {getShortcutText(config)}
           </Text>
+        ) : (
+          <Text color="magenta">Loading shortcuts...</Text>
         )}
       </Box>
     </Box>

@@ -6,6 +6,9 @@ import { getAllConversations } from './utils/conversationReader.js';
 import { spawn } from 'child_process';
 import clipboardy from 'clipboardy';
 import type { Conversation } from './types.js';
+import { loadConfig } from './utils/configLoader.js';
+import { matchesKeyBinding } from './utils/keyBindingHelper.js';
+import type { Config } from './types/config.js';
 
 interface AppProps {
   claudeArgs?: string[];
@@ -21,6 +24,13 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
   const [error, setError] = useState<string | null>(null);
   const [dimensions, setDimensions] = useState({ width: 80, height: 24 });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [config, setConfig] = useState<Config | null>(null);
+
+  useEffect(() => {
+    // Load config on mount
+    const loadedConfig = loadConfig();
+    setConfig(loadedConfig);
+  }, []);
 
   useEffect(() => {
     loadConversations();
@@ -59,22 +69,24 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
   };
 
   useInput((input, key) => {
-    if (input === 'q') {
+    if (!config) return;
+    
+    if (matchesKeyBinding(input, key, config.keybindings.quit)) {
       exit();
     }
 
     if (loading || conversations.length === 0) return;
 
-    if (key.upArrow) {
+    if (matchesKeyBinding(input, key, config.keybindings.selectPrevious)) {
       setSelectedIndex((prev) => Math.max(0, prev - 1));
     }
     
-    if (key.downArrow) {
+    if (matchesKeyBinding(input, key, config.keybindings.selectNext)) {
       setSelectedIndex((prev) => Math.min(conversations.length - 1, prev + 1));
     }
     
 
-    if (key.return) {
+    if (matchesKeyBinding(input, key, config.keybindings.confirm)) {
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
         // Build the command string for display
@@ -129,7 +141,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
       }
     }
 
-    if (input === 'c') {
+    if (matchesKeyBinding(input, key, config.keybindings.copySessionId)) {
       // Copy session ID to clipboard
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
