@@ -179,13 +179,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
-## Performance Considerations
-
-- ccresume uses lazy loading and pagination to handle large numbers of conversations efficiently
-- Only 30 conversations are loaded at a time, providing fast startup even with thousands of conversations
-- Navigate between pages using the arrow keys (← →) or custom keybindings
-
 ## License
 
 MIT
@@ -197,8 +190,6 @@ For issues and feature requests, please use the [GitHub issue tracker](https://g
 ## 🐞 Known Issues
 
 Below are known issues and limitations. Contributions and suggestions are welcome!
-
-## 🐞 Known Issues
 
 | No. | Title | Description | Issue |
 |:---:|:------|:-------------|:-----|
