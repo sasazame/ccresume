@@ -194,4 +194,16 @@ MIT
 
 For issues and feature requests, please use the [GitHub issue tracker](https://github.com/sasazame/ccresume/issues).
 
+## 🐞 Known Issues
+
+Below are known issues and limitations. Contributions and suggestions are welcome!
+
+## 🐞 Known Issues
+
+| No. | Title | Description | Issue |
+|:---:|:------|:-------------|:-----|
+| 1 | **Incomplete conversation history restoration on resume** | When resuming with ccresume, sometimes, only the tail end of the history is restored. Although the interactive `claude -r` can restore full history. Workaround: use `claude -r` interactively or `claude -c`. | [#2](https://github.com/sasazame/ccresume/issues/2) |
+| 2 | **Restore original console state after exiting ccresume** | Exiting `ccresume` leaves the chat selection interface visible and hides previous terminal content. A feature branch exists but has scroll-lock issues. Plan: optional `--preserve-screen` flag. | [#3](https://github.com/sasazame/ccresume/issues/3) |
+| 3 | **Resume ordering may be incorrect** | For performance issue, `ccresume` sorts logs by file system timestamps (not chat content), so display order may not match actual chronology after migration. Workaround: preserve file timestamps. | – |
+
 Remember: This is an unofficial tool. For official Claude Code support, please refer to Anthropic's documentation.
