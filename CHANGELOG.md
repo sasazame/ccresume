@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-07-11
+
 ### Added
 - New `--hide` option to hide specific message types (#27)
   - Hide tool use messages with `--hide tool`
