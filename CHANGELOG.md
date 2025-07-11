@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-07-11
+
+### Added
+- New `--hide` option to hide specific message types (#27)
+  - Hide tool use messages with `--hide tool`
+  - Hide thinking messages with `--hide thinking`
+  - Hide user messages with `--hide user`
+  - Hide assistant messages with `--hide assistant`
+  - Default behavior (no arguments): `--hide` hides both tool and thinking messages
+  - Multiple message types can be hidden: `--hide tool thinking user`
+- Improved command-line argument parsing with validation for hide options
+
 ## [0.2.0] - 2025-07-07
 
 ### Added

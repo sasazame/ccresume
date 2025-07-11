@@ -16,6 +16,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
 - 📁 Filter conversations to current directory with `.` argument
+- 🎭 Hide specific message types for cleaner display
 
 ![ccresume demo](docs/images/demo.gif)
 
@@ -47,10 +48,34 @@ Or if using npx:
 npx @sasazame/ccresume@latest
 ```
 
-### Passing Options to Claude
+### Command Line Options
 
-**Important**: All command-line arguments are passed directly to the `claude` command when resuming a conversation.
+#### ccresume Options
 
+```bash
+# Hide specific message types
+ccresume --hide              # Default: hides tool and thinking messages
+ccresume --hide tool         # Hide only tool messages
+ccresume --hide thinking      # Hide only thinking messages
+ccresume --hide user         # Hide only user messages
+ccresume --hide assistant    # Hide only assistant messages
+ccresume --hide tool thinking user  # Hide multiple types
+
+# Filter to current directory
+ccresume .
+
+# Show help
+ccresume --help
+ccresume -h
+
+# Show version
+ccresume --version
+ccresume -v
+```
+
+#### Passing Options to Claude
+
+All unrecognized command-line arguments are passed directly to the `claude` command when resuming a conversation.
 
 ```bash
 # Pass options to claude
@@ -59,14 +84,12 @@ ccresume --dangerously-skip-permissions
 # Multiple options
 ccresume --model opus --dangerously-skip-permissions
 
-# Filter to current directory only
-ccresume .
-
-# Combine with claude options
-ccresume . --model opus 
+# Combine ccresume and claude options
+ccresume --hide tool --model opus 
+ccresume . --hide --dangerously-skip-permissions
 ```
 
-**⚠️ Warning**: Since all arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
+**⚠️ Warning**: Since unrecognized arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
 - Don't use options like `--resume` or something like that changes claude's interactive behavior
 
 ## Requirements
@@ -92,8 +115,8 @@ ccresume . --model opus
 | Page Down | `d`, `PageDown` |
 | Scroll to Top | `g` |
 | Scroll to Bottom | `G` |
-| Next Page | `→`, `n` |
-| Previous Page | `←`, `p` |
+| Next Page | `→`|
+| Previous Page | `←` |
 
 ### Custom Key Bindings
 
@@ -179,14 +202,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
-## Performance Considerations
-
-- ccresume uses lazy loading and pagination to handle large numbers of conversations efficiently
-- Only 30 conversations are loaded at a time, providing fast startup even with thousands of conversations
-- Navigate between pages using the arrow keys (← →) or custom keybindings
-- The tool automatically detects the total number of conversations without loading them all
-
 ## License
 
 MIT
@@ -194,5 +209,15 @@ MIT
 ## Support
 
 For issues and feature requests, please use the [GitHub issue tracker](https://github.com/sasazame/ccresume/issues).
+
+## 🐞 Known Issues
+
+Below are known issues and limitations. Contributions and suggestions are welcome!
+
+| No. | Title | Description | Issue |
+|:---:|:------|:-------------|:-----|
+| 1 | **Incomplete conversation history restoration on resume** | When resuming with ccresume, sometimes, only the tail end of the history is restored. Although the interactive `claude -r` can restore full history. Workaround: use `claude -r` interactively or `claude -c`. | [#2](https://github.com/sasazame/ccresume/issues/2) |
+| 2 | **Restore original console state after exiting ccresume** | Exiting `ccresume` leaves the chat selection interface visible and hides previous terminal content. A feature branch exists but has scroll-lock issues. Plan: optional `--preserve-screen` flag. | [#3](https://github.com/sasazame/ccresume/issues/3) |
+| 3 | **Resume ordering may be incorrect** | For performance issue, `ccresume` sorts logs by file system timestamps (not chat content), so display order may not match actual chronology after migration. Workaround: preserve file timestamps. | – |
 
 Remember: This is an unofficial tool. For official Claude Code support, please refer to Anthropic's documentation.

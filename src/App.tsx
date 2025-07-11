@@ -13,9 +13,10 @@ import type { Config } from './types/config.js';
 interface AppProps {
   claudeArgs?: string[];
   currentDirOnly?: boolean;
+  hideOptions?: string[];
 }
 
-const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) => {
+const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hideOptions = [] }) => {
   const { exit } = useApp();
   const { stdout } = useStdout();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -286,7 +287,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false }) =>
       </Box>
       
       <Box height={previewHeight}>
-        <ConversationPreview conversation={selectedConversation} statusMessage={statusMessage} />
+        <ConversationPreview conversation={selectedConversation} statusMessage={statusMessage} hideOptions={hideOptions} />
       </Box>
       
       {/* Bottom margin to absorb any overflow */}
