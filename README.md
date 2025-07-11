@@ -16,6 +16,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
 - 📁 Filter conversations to current directory with `.` argument
+- 🎭 Hide specific message types for cleaner display
 
 ![ccresume demo](docs/images/demo.gif)
 
@@ -47,10 +48,34 @@ Or if using npx:
 npx @sasazame/ccresume@latest
 ```
 
-### Passing Options to Claude
+### Command Line Options
 
-**Important**: All command-line arguments are passed directly to the `claude` command when resuming a conversation.
+#### ccresume Options
 
+```bash
+# Hide specific message types
+ccresume --hide              # Default: hides tool and thinking messages
+ccresume --hide tool         # Hide only tool messages
+ccresume --hide thinking      # Hide only thinking messages
+ccresume --hide user         # Hide only user messages
+ccresume --hide assistant    # Hide only assistant messages
+ccresume --hide tool thinking user  # Hide multiple types
+
+# Filter to current directory
+ccresume .
+
+# Show help
+ccresume --help
+ccresume -h
+
+# Show version
+ccresume --version
+ccresume -v
+```
+
+#### Passing Options to Claude
+
+All unrecognized command-line arguments are passed directly to the `claude` command when resuming a conversation.
 
 ```bash
 # Pass options to claude
@@ -59,14 +84,12 @@ ccresume --dangerously-skip-permissions
 # Multiple options
 ccresume --model opus --dangerously-skip-permissions
 
-# Filter to current directory only
-ccresume .
-
-# Combine with claude options
-ccresume . --model opus 
+# Combine ccresume and claude options
+ccresume --hide tool --model opus 
+ccresume . --hide --dangerously-skip-permissions
 ```
 
-**⚠️ Warning**: Since all arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
+**⚠️ Warning**: Since unrecognized arguments are passed to claude, avoid using options that conflict with ccresume's functionality:
 - Don't use options like `--resume` or something like that changes claude's interactive behavior
 
 ## Requirements
