@@ -14,7 +14,43 @@ const args = process.argv.slice(2);
 
 // Check if '.' is present as a standalone argument - indicates current directory filtering
 const currentDirOnly = args.includes('.');
-const filteredArgs = args.filter(arg => arg !== '.');
+let filteredArgs = args.filter(arg => arg !== '.');
+
+// Parse --hide option
+let hideOptions: string[] = [];
+const hideIndex = filteredArgs.findIndex(arg => arg === '--hide');
+if (hideIndex !== -1) {
+  // Valid hide options
+  const validHideOptions = ['tool', 'thinking', 'user', 'assistant'];
+  
+  // Collect all arguments after --hide until the next option or end
+  let i = hideIndex + 1;
+  let argCount = 0;
+  while (i < filteredArgs.length && !filteredArgs[i].startsWith('-')) {
+    const arg = filteredArgs[i];
+    // Only add valid hide options
+    if (validHideOptions.includes(arg)) {
+      hideOptions.push(arg);
+      argCount++;
+      i++;
+    } else {
+      // Stop collecting if we hit an invalid hide option
+      // This argument might be meant for claude
+      break;
+    }
+  }
+  
+  // If no arguments provided, use default: tool and thinking
+  if (hideOptions.length === 0) {
+    hideOptions = ['tool', 'thinking'];
+  }
+  
+  // Remove --hide and its arguments from filteredArgs
+  filteredArgs = [
+    ...filteredArgs.slice(0, hideIndex),
+    ...filteredArgs.slice(hideIndex + 1 + argCount)
+  ];
+}
 
 // Handle --help
 if (filteredArgs.includes('--help') || filteredArgs.includes('-h')) {
@@ -23,9 +59,11 @@ if (filteredArgs.includes('--help') || filteredArgs.includes('-h')) {
 Usage: ccresume [.] [options]
 
 Options:
-  .              Filter conversations to current directory only
-  -h, --help     Show this help message
-  -v, --version  Show version number
+  .                    Filter conversations to current directory only
+  --hide [types...]    Hide specific message types (tool, thinking, user, assistant)
+                       Default: tool thinking (when no types specified)
+  -h, --help           Show this help message
+  -v, --version        Show version number
 
 All other options are passed to claude when resuming a conversation.
 
@@ -60,7 +98,7 @@ const claudeArgs = filteredArgs;
 console.clear();
 
 // Render the app in fullscreen mode
-const { unmount } = render(<App claudeArgs={claudeArgs} currentDirOnly={currentDirOnly} />, {
+const { unmount } = render(<App claudeArgs={claudeArgs} currentDirOnly={currentDirOnly} hideOptions={hideOptions} />, {
   exitOnCtrlC: true
 });
 

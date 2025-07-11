@@ -12,9 +12,10 @@ import type { Config } from '../types/config.js';
 interface ConversationPreviewProps {
   conversation: Conversation | null;
   statusMessage?: string | null;
+  hideOptions?: string[];
 }
 
-export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conversation, statusMessage }) => {
+export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conversation, statusMessage, hideOptions = [] }) => {
   const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
   const terminalWidth = stdout?.columns || 80;
@@ -53,22 +54,60 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
     setMaxVisibleMessages(availableHeight);
   }, [stdout?.rows]);
 
+  // Filter messages based on hideOptions
+  const filteredMessages = conversation ? conversation.messages.filter(msg => {
+    if (!msg || (!msg.message && !msg.toolUseResult)) {
+      return false;
+    }
+    
+    // Get content to check message type
+    let content = '';
+    if (msg.message && msg.message.content) {
+      content = extractMessageText(msg.message.content);
+    } else if (msg.toolUseResult) {
+      // Tool result messages are considered tool messages
+      return !hideOptions.includes('tool');
+    }
+    
+    // Check if this is a tool message
+    if (hideOptions.includes('tool') && content.startsWith('[Tool:')) {
+      return false;
+    }
+    
+    // Check if this is a thinking message
+    if (hideOptions.includes('thinking') && content === '[Thinking...]') {
+      return false;
+    }
+    
+    // Check if we should hide user messages
+    if (hideOptions.includes('user') && msg.type === 'user') {
+      return false;
+    }
+    
+    // Check if we should hide assistant messages
+    if (hideOptions.includes('assistant') && msg.type === 'assistant') {
+      return false;
+    }
+    
+    return true;
+  }) : [];
+
   useEffect(() => {
     // When conversation changes, scroll to the bottom (most recent messages)
     if (conversation) {
-      const totalMessages = conversation.messages.length;
+      const totalMessages = filteredMessages.length;
       const maxOffset = Math.max(0, totalMessages - maxVisibleMessages);
       setScrollOffset(maxOffset);
     } else {
       setScrollOffset(0);
     }
-  }, [conversation?.sessionId, maxVisibleMessages, conversation?.messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversation?.sessionId, maxVisibleMessages, filteredMessages.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   useInput((input, key) => {
     if (!conversation || !config) return;
     
-    const totalMessages = conversation.messages.length;
+    const totalMessages = filteredMessages.length;
     const maxOffset = Math.max(0, totalMessages - maxVisibleMessages);
     
     // Top
@@ -108,13 +147,11 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   }
 
   // Count valid messages (with proper structure or tool results)
-  const messageCount = conversation.messages.filter(m => 
-    m && (m.message || m.toolUseResult)
-  ).length;
+  const messageCount = filteredMessages.length;
   const duration = conversation.endTime.getTime() - conversation.startTime.getTime();
   const durationMinutes = Math.round(duration / 1000 / 60);
   
-  const visibleMessages = conversation.messages.slice(scrollOffset, scrollOffset + maxVisibleMessages);
+  const visibleMessages = filteredMessages.slice(scrollOffset, scrollOffset + maxVisibleMessages);
   
   // Calculate safe width for text wrapping
   const safeWidth = Math.max(40, terminalWidth - 20);
