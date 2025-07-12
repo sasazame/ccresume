@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from 'fs/promises';
-import { join, sep, basename } from 'path';
+import { join } from 'path';
 import { homedir } from 'os';
 import type { Conversation, Message } from '../types.js';
 import { extractMessageText } from './messageUtils.js';
@@ -16,8 +16,8 @@ interface PaginationOptions {
 
 // Helper function to convert project path to Claude directory name
 function pathToClaudeDir(path: string): string {
-  // Claude's conversion: / or \ becomes -, and . also becomes -
-  return path.replace(/[/\\.]/g, '-');
+  // Claude's conversion: / becomes -, and . also becomes -
+  return path.replace(/[/.]/g, '-');
 }
 
 // Get paginated conversations with lazy loading
@@ -146,7 +146,7 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
     }
     
     // Extract session ID from filename
-    const filename = basename(filePath);
+    const filename = filePath.split('/').pop() || '';
     const filenameSessionId = filename.replace('.jsonl', '');
     
     const messages: Message[] = [];
@@ -178,7 +178,7 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
     
     const userMessages = messages.filter(m => m.type === 'user');
     
-    const projectName = projectDir.replace(/^-/, '').split('-').join(sep);
+    const projectName = projectDir.replace(/^-/, '').split('-').join('/');
     
     const startTime = new Date(messages[0].timestamp);
     const endTime = new Date(messages[messages.length - 1].timestamp);
