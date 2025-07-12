@@ -50,8 +50,8 @@ export function generateConversationSummary(conversation: Conversation): string 
 }
 
 export function formatProjectPath(path: string): string {
-  // Shorten home directory path
-  const home = process.env.HOME || '/home';
+  // Shorten home directory path for both Unix and Windows
+  const home = process.env.HOME || process.env.USERPROFILE || (process.platform === 'win32' ? 'C:\\Users\\Default' : '/home');
   if (path.startsWith(home)) {
     return '~' + path.slice(home.length);
   }

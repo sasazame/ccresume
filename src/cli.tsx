@@ -97,6 +97,28 @@ const claudeArgs = filteredArgs;
 // Clear the screen before rendering
 console.clear();
 
+// Show Windows-specific notice at startup with pause
+if (process.platform === 'win32') {
+  const { spawn } = await import('child_process');
+  
+  console.log('');
+  console.log('📝 Notice for Windows users: If terminal doesn\'t accept input after Claude Code starts,');
+  console.log('   press ENTER once to activate input.');
+  console.log('   This is a temporary workaround for a known Windows environment issue.');
+  console.log('   For details, see GitHub issue: https://github.com/sasazame/ccresume/issues/32');
+  console.log('');
+  
+  // Use spawn with inherited stdio to ensure proper pause behavior
+  const pause = spawn('cmd.exe', ['/c', 'pause'], { stdio: 'inherit' });
+  
+  // Wait for pause to complete before continuing
+  await new Promise((resolve) => {
+    pause.on('close', resolve);
+  });
+  
+  console.clear();
+}
+
 // Render the app in fullscreen mode
 const { unmount } = render(<App claudeArgs={claudeArgs} currentDirOnly={currentDirOnly} hideOptions={hideOptions} />, {
   exitOnCtrlC: true
