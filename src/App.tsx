@@ -170,10 +170,18 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
           console.clear();
           exit();
           
-          // Spawn claude process in the project directory with passed arguments
-          const claude = spawn('claude', commandArgs, {
+          // Windows-specific reminder before Claude starts
+          if (process.platform === 'win32') {
+            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
+            console.log('');
+          }
+          
+          // Spawn claude process (same for all platforms)
+          // Use shell command string to avoid deprecation warning
+          const claudeCommand = `claude ${commandArgs.join(' ')}`;
+          const claude = spawn(claudeCommand, {
             stdio: 'inherit',
-            cwd: selectedConv.projectPath,  // This sets the working directory for the child process
+            cwd: selectedConv.projectPath,
             shell: true
           });
           
@@ -199,7 +207,6 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
           });
           
           claude.on('close', (code) => {
-            // The parent process directory remains unchanged
             process.exit(code || 0);
           });
         }, 500); // Show status message for 500ms before executing
