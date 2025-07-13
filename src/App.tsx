@@ -16,6 +16,20 @@ interface AppProps {
   hideOptions?: string[];
 }
 
+// Layout constants
+const ITEMS_PER_PAGE = 30;
+const HEADER_HEIGHT = 2; // Title + pagination info
+const LIST_MAX_HEIGHT = 9; // Maximum height for conversation list
+const LIST_BASE_HEIGHT = 3; // Borders (2) + title (1)
+const MAX_VISIBLE_CONVERSATIONS = 4; // Maximum conversations shown per page
+const BOTTOM_MARGIN = 1; // Bottom margin to absorb overflow
+const SAFETY_MARGIN = 1; // Prevents Ink from clearing terminal when output approaches height limit
+const MIN_PREVIEW_HEIGHT = 10; // Minimum height for conversation preview
+const DEFAULT_TERMINAL_WIDTH = 80;
+const DEFAULT_TERMINAL_HEIGHT = 24;
+const EXECUTE_DELAY_MS = 500; // Delay before executing command to show status
+const STATUS_MESSAGE_DURATION_MS = 2000; // Duration to show status messages
+
 const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hideOptions = [] }) => {
   const { exit } = useApp();
   const { stdout } = useStdout();
@@ -23,7 +37,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dimensions, setDimensions] = useState({ width: 80, height: 24 });
+  const [dimensions, setDimensions] = useState({ width: DEFAULT_TERMINAL_WIDTH, height: DEFAULT_TERMINAL_HEIGHT });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [config, setConfig] = useState<Config | null>(null);
   
@@ -31,7 +45,6 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const [currentPage, setCurrentPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [paginating, setPaginating] = useState(false);
-  const ITEMS_PER_PAGE = 30;
 
   useEffect(() => {
     // Load config on mount
@@ -47,8 +60,8 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     // Update dimensions on terminal resize
     const updateDimensions = () => {
       setDimensions({
-        width: stdout.columns || 80,
-        height: stdout.rows || 24
+        width: stdout.columns || DEFAULT_TERMINAL_WIDTH,
+        height: stdout.rows || DEFAULT_TERMINAL_HEIGHT
       });
     };
     
@@ -163,17 +176,27 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
         
         // Small delay to show the message before clearing screen
         setTimeout(() => {
-          console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
-          console.log(`Directory: ${selectedConv.projectPath}`);
-          
-          // Clear the screen and exit the app
-          console.clear();
+          // Exit the app first to stop Ink rendering
           exit();
           
-          // Spawn claude process in the project directory with passed arguments
-          const claude = spawn('claude', commandArgs, {
+          // Output helpful information for the user
+          console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
+          console.log(`Directory: ${selectedConv.projectPath}`);
+          console.log(`Executing: ${commandStr}`);
+          console.log('---');
+          
+          // Windows-specific reminder before Claude starts
+          if (process.platform === 'win32') {
+            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
+            console.log('');
+          }
+          
+          // Spawn claude process (same for all platforms)
+          // Use shell command string to avoid deprecation warning
+          const claudeCommand = `claude ${commandArgs.join(' ')}`;
+          const claude = spawn(claudeCommand, {
             stdio: 'inherit',
-            cwd: selectedConv.projectPath,  // This sets the working directory for the child process
+            cwd: selectedConv.projectPath,
             shell: true
           });
           
@@ -199,10 +222,9 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
           });
           
           claude.on('close', (code) => {
-            // The parent process directory remains unchanged
             process.exit(code || 0);
           });
-        }, 500); // Show status message for 500ms before executing
+        }, EXECUTE_DELAY_MS); // Show status message before executing
       }
     }
 
@@ -214,10 +236,10 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
           clipboardy.writeSync(selectedConv.sessionId);
           // Show temporary status message
           setStatusMessage('✓ Session ID copied to clipboard!');
-          setTimeout(() => setStatusMessage(null), 2000);
+          setTimeout(() => setStatusMessage(null), STATUS_MESSAGE_DURATION_MS);
         } catch {
           setStatusMessage('✗ Failed to copy to clipboard');
-          setTimeout(() => setStatusMessage(null), 2000);
+          setTimeout(() => setStatusMessage(null), STATUS_MESSAGE_DURATION_MS);
         }
       }
     }
@@ -245,19 +267,22 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   
   // Calculate heights for fixed layout
-  const headerHeight = 2; // Title + pagination info
-  const listMaxHeight = 9; // Maximum height for conversation list
-  const visibleConversations = Math.min(4, conversations.length); // Show max 4 conversations per page
+  const headerHeight = HEADER_HEIGHT;
+  const listMaxHeight = LIST_MAX_HEIGHT;
+  const visibleConversations = Math.min(MAX_VISIBLE_CONVERSATIONS, conversations.length);
   // List height calculation: 
-  // 2 (borders) + 1 (title) + visibleConversations + 1 (more message if needed)
+  // LIST_BASE_HEIGHT includes borders (2) + title (1)
   const needsMoreIndicator = conversations.length > visibleConversations ? 1 : 0;
-  const listHeight = Math.min(listMaxHeight, 3 + visibleConversations + needsMoreIndicator);
-  // Add bottom margin (1 line) to prevent overflow
-  const bottomMargin = 1;
-  const previewHeight = Math.max(10, dimensions.height - headerHeight - listHeight - bottomMargin);
+  const listHeight = Math.min(listMaxHeight, LIST_BASE_HEIGHT + visibleConversations + needsMoreIndicator);
+  
+  // Add safety margin to prevent exceeding terminal height
+  const safetyMargin = SAFETY_MARGIN;
+  const bottomMargin = BOTTOM_MARGIN;
+  const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
+  const previewHeight = Math.max(MIN_PREVIEW_HEIGHT, dimensions.height - totalUsedHeight);
 
   return (
-    <Box flexDirection="column" width={dimensions.width} height={dimensions.height} paddingX={1} paddingY={0}>
+    <Box flexDirection="column" width={dimensions.width} paddingX={1} paddingY={0}>
       <Box height={headerHeight} flexDirection="column">
         <Text bold color="cyan">ccresume - Claude Code Conversation Browser</Text>
         <Box>

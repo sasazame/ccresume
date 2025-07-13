@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-07-13
+
+### Fixed
+- Preserve terminal scrollback buffer when exiting (#34)
+- Windows terminal input compatibility improvements (#33)
+
+### Changed
+- Refactored magic numbers to named constants for better code maintainability
+
 ## [0.3.0] - 2025-07-11
 
 ### Added
