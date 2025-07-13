@@ -253,6 +253,10 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   
+  // Constants for layout calculation
+  const SAFETY_MARGIN = 1; // Prevents Ink from clearing terminal when output approaches height limit
+  const MIN_PREVIEW_HEIGHT = 10;
+  
   // Calculate heights for fixed layout
   const headerHeight = 2; // Title + pagination info
   const listMaxHeight = 9; // Maximum height for conversation list
@@ -263,10 +267,10 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const listHeight = Math.min(listMaxHeight, 3 + visibleConversations + needsMoreIndicator);
   
   // Add safety margin to prevent exceeding terminal height
-  const safetyMargin = 1; // Extra margin to account for Static component and any overflow
+  const safetyMargin = SAFETY_MARGIN;
   const bottomMargin = 1;
   const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
-  const previewHeight = Math.max(10, dimensions.height - totalUsedHeight);
+  const previewHeight = Math.max(MIN_PREVIEW_HEIGHT, dimensions.height - totalUsedHeight);
 
   return (
     <Box flexDirection="column" width={dimensions.width} paddingX={1} paddingY={0}>
