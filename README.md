@@ -96,7 +96,7 @@ ccresume . --hide --dangerously-skip-permissions
 
 - **Node.js** >= 18
 - **Claude Code** - Must be installed and configured
-- **Operating System** - Works on macOS, Linux, and Windows
+- **Operating System** - Works on macOS, Linux, and Windows (both native & WSL)
 
 ## Keyboard Controls
 
@@ -219,5 +219,6 @@ Below are known issues and limitations. Contributions and suggestions are welcom
 | 1 | **Incomplete conversation history restoration on resume** | When resuming with ccresume, sometimes, only the tail end of the history is restored. Although the interactive `claude -r` can restore full history. Workaround: use `claude -r` interactively or `claude -c`. | [#2](https://github.com/sasazame/ccresume/issues/2) |
 | 2 | **~~Restore original console state after exiting ccresume~~** | ~~Exiting `ccresume` leaves the chat selection interface visible and hides previous terminal content.~~ **Fixed in v0.3.1**: Terminal scrollback buffer is now preserved when exiting. | [#3](https://github.com/sasazame/ccresume/issues/3) |
 | 3 | **Resume ordering may be incorrect** | For performance issue, `ccresume` sorts logs by file system timestamps (not chat content), so display order may not match actual chronology after migration. Workaround: preserve file timestamps. | – |
+| 4 | **Windows native terminal limitations** | On Windows native terminals, interactive features may have limited functionality due to terminal input handling differences. For the best experience on Windows, consider using Windows Terminal or WSL. | [#32](https://github.com/sasazame/ccresume/issues/32) |
 
 Remember: This is an unofficial tool. For official Claude Code support, please refer to Anthropic's documentation.
