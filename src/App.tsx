@@ -163,12 +163,14 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
         
         // Small delay to show the message before clearing screen
         setTimeout(() => {
+          // Exit the app first to stop Ink rendering
+          exit();
+          
+          // Output helpful information for the user
           console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
           console.log(`Directory: ${selectedConv.projectPath}`);
-          
-          // Clear the screen and exit the app
-          console.clear();
-          exit();
+          console.log(`Executing: ${commandStr}`);
+          console.log('---');
           
           // Windows-specific reminder before Claude starts
           if (process.platform === 'win32') {
@@ -259,12 +261,15 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   // 2 (borders) + 1 (title) + visibleConversations + 1 (more message if needed)
   const needsMoreIndicator = conversations.length > visibleConversations ? 1 : 0;
   const listHeight = Math.min(listMaxHeight, 3 + visibleConversations + needsMoreIndicator);
-  // Add bottom margin (1 line) to prevent overflow
+  
+  // Add safety margin to prevent exceeding terminal height
+  const safetyMargin = 1; // Extra margin to account for Static component and any overflow
   const bottomMargin = 1;
-  const previewHeight = Math.max(10, dimensions.height - headerHeight - listHeight - bottomMargin);
+  const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
+  const previewHeight = Math.max(10, dimensions.height - totalUsedHeight);
 
   return (
-    <Box flexDirection="column" width={dimensions.width} height={dimensions.height} paddingX={1} paddingY={0}>
+    <Box flexDirection="column" width={dimensions.width} paddingX={1} paddingY={0}>
       <Box height={headerHeight} flexDirection="column">
         <Text bold color="cyan">ccresume - Claude Code Conversation Browser</Text>
         <Box>

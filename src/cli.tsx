@@ -94,9 +94,6 @@ if (filteredArgs.includes('--version') || filteredArgs.includes('-v')) {
 
 const claudeArgs = filteredArgs;
 
-// Clear the screen before rendering
-console.clear();
-
 // Show Windows-specific notice at startup with pause
 if (process.platform === 'win32') {
   const { spawn } = await import('child_process');
@@ -115,8 +112,6 @@ if (process.platform === 'win32') {
   await new Promise((resolve) => {
     pause.on('close', resolve);
   });
-  
-  console.clear();
 }
 
 // Render the app in fullscreen mode
