@@ -39,7 +39,7 @@
     "@iarna/toml": "^2.2.5",
     "clipboardy": "^4.0.0",
     "date-fns": "^4.1.0",
-    "ink": "^5.2.1",
+    "ink": "^6.0.1",
     "react": "^18.3.1"
   },
   "devDependencies": {
