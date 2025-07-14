@@ -78,10 +78,16 @@ describe('ConversationPreview', () => {
     expect(lastFrame()).toContain('This is a response');
   });
 
-  it('renders scroll help text', () => {
-    const { lastFrame } = render(
+  it('renders scroll help text', async () => {
+    const { lastFrame, rerender } = render(
       <ConversationPreview conversation={mockConversation} />
     );
+    
+    // Wait for next tick to allow useEffect to run
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    // Force a rerender to ensure the component updates with the loaded config
+    rerender(<ConversationPreview conversation={mockConversation} />);
     
     expect(lastFrame()).toContain('Scroll:');
     expect(lastFrame()).toContain('Resume:');
