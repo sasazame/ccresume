@@ -21,6 +21,7 @@ export interface Conversation {
   sessionId: string;
   projectPath: string;
   projectName: string;
+  gitBranch?: string | null;
   messages: Message[];
   firstMessage: string;
   lastMessage: string;

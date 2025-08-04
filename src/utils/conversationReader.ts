@@ -187,10 +187,29 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
     // Use session ID from filename as it's what Claude expects for --resume
     const sessionId = filenameSessionId;
     
+    const projectPath = messages[0].cwd || '';
+    
+    // Get gitBranch from the last line of the jsonl file
+    // Branch info is stored in the last line by newer versions of Claude Code
+    let gitBranch: string | null = null;
+    try {
+      const lastLine = lines[lines.length - 1];
+      const lastData = JSON.parse(lastLine);
+      if (lastData.gitBranch !== undefined) {
+        // Preserve null/empty string values explicitly
+        gitBranch = lastData.gitBranch === null || lastData.gitBranch === '' ? '-' : lastData.gitBranch;
+      } else {
+        gitBranch = '-';
+      }
+    } catch {
+      gitBranch = '-';
+    }
+    
     return {
       sessionId,
-      projectPath: messages[0].cwd || '',
+      projectPath,
       projectName,
+      gitBranch,
       messages,
       firstMessage: userMessages.length > 0 ? extractMessageText(userMessages[0].message?.content) : '',
       lastMessage: userMessages.length > 0 ? extractMessageText(userMessages[userMessages.length - 1].message?.content) : '',

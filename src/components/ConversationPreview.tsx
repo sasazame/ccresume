@@ -170,9 +170,13 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
           <Text bold>Session: </Text>
           <Text color="yellow">{conversation.sessionId}</Text>
         </Box>
-        <Box marginBottom={1}>
+        <Box>
           <Text bold>Directory: </Text>
           <Text>{conversation.projectPath}</Text>
+        </Box>
+        <Box marginBottom={1}>
+          <Text bold>Branch: </Text>
+          <Text>{conversation.gitBranch || '-'}</Text>
         </Box>
       </Box>
 
