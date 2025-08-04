@@ -174,12 +174,10 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
           <Text bold>Directory: </Text>
           <Text>{conversation.projectPath}</Text>
         </Box>
-        {conversation.gitBranch && (
-          <Box marginBottom={1}>
-            <Text bold>Branch: </Text>
-            <Text>{conversation.gitBranch}</Text>
-          </Box>
-        )}
+        <Box marginBottom={1}>
+          <Text bold>Branch: </Text>
+          <Text>{conversation.gitBranch || '-'}</Text>
+        </Box>
       </Box>
 
       {/* Messages area with inner border */}

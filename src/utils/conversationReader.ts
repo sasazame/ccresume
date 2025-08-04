@@ -190,12 +190,14 @@ async function readConversation(filePath: string, projectDir: string): Promise<C
     const projectPath = messages[0].cwd || '';
     
     // Get gitBranch from the last line of the jsonl file
+    // Branch info is stored in the last line by newer versions of Claude Code
     let gitBranch: string | null = null;
     try {
       const lastLine = lines[lines.length - 1];
       const lastData = JSON.parse(lastLine);
       if (lastData.gitBranch !== undefined) {
-        gitBranch = lastData.gitBranch || '-';
+        // Preserve null/empty string values explicitly
+        gitBranch = lastData.gitBranch === null || lastData.gitBranch === '' ? '-' : lastData.gitBranch;
       } else {
         gitBranch = '-';
       }
