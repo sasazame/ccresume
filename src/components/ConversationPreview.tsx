@@ -6,7 +6,7 @@ import { extractMessageText } from '../utils/messageUtils.js';
 import { strictTruncateByWidth } from '../utils/strictTruncate.js';
 import { loadConfig } from '../utils/configLoader.js';
 import { matchesKeyBinding } from '../utils/keyBindingHelper.js';
-import { getShortcutText } from '../utils/shortcutHelper.js';
+import { getShortcutText, hasKeyConflict } from '../utils/shortcutHelper.js';
 import type { Config } from '../types/config.js';
 
 interface ConversationPreviewProps {
@@ -258,9 +258,17 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         {statusMessage ? (
           <Text color="green" bold>{statusMessage}</Text>
         ) : config ? (
-          <Text color="magenta">
-            {getShortcutText(config)}
-          </Text>
+          <Box>
+            <Text color="magenta">
+              {getShortcutText(config)}
+            </Text>
+            {hasKeyConflict(config) && (
+              <>
+                <Text color="magenta"> • </Text>
+                <Text color="yellow" bold>⚠️ Key conflict - see --help</Text>
+              </>
+            )}
+          </Box>
         ) : (
           <Text color="magenta">Loading shortcuts...</Text>
         )}
