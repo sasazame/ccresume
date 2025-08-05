@@ -75,6 +75,70 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     return undefined;
   }, [stdout]);
 
+  const executeClaudeCommand = (
+    conversation: Conversation,
+    args: string[],
+    statusMsg: string,
+    actionType: 'resume' | 'start'
+  ) => {
+    const commandStr = `claude ${args.join(' ')}`;
+    setStatusMessage(statusMsg);
+    
+    setTimeout(() => {
+      exit();
+      
+      // Output helpful information
+      if (actionType === 'resume') {
+        console.log(`\nResuming conversation: ${conversation.sessionId}`);
+      } else {
+        console.log(`\nStarting new session in: ${conversation.projectPath}`);
+      }
+      console.log(`Directory: ${conversation.projectPath}`);
+      console.log(`Executing: ${commandStr}`);
+      console.log('---');
+      
+      // Windows-specific reminder
+      if (process.platform === 'win32') {
+        console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
+        console.log('');
+      }
+      
+      // Spawn claude process
+      const claude = spawn(commandStr, {
+        stdio: 'inherit',
+        cwd: conversation.projectPath,
+        shell: true
+      });
+      
+      claude.on('error', (err) => {
+        console.error(`\nFailed to ${actionType} ${actionType === 'resume' ? 'conversation' : 'new session'}:`, err.message);
+        console.error('Make sure Claude Code is installed and available in PATH');
+        console.error(`Or the project directory might not exist: ${conversation.projectPath}`);
+        
+        // For resume action, provide clipboard fallback
+        if (actionType === 'resume') {
+          try {
+            clipboardy.writeSync(conversation.sessionId);
+            console.log(`\nSession ID copied to clipboard: ${conversation.sessionId}`);
+            console.log(`Project directory: ${conversation.projectPath}`);
+            console.log(`You can manually run:`);
+            console.log(`  cd "${conversation.projectPath}"`);
+            const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
+            console.log(`  claude ${argsStr}--resume ${conversation.sessionId}`);
+          } catch (clipErr) {
+            console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
+          }
+        }
+        
+        process.exit(1);
+      });
+      
+      claude.on('close', (code) => {
+        process.exit(code || 0);
+      });
+    }, EXECUTE_DELAY_MS);
+  };
+
   const loadConversations = async (isPaginating = false) => {
     try {
       if (isPaginating) {
@@ -167,64 +231,14 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     if (matchesKeyBinding(input, key, config.keybindings.confirm)) {
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
-        // Build the command string for display
         const commandArgs = [...claudeArgs, '--resume', selectedConv.sessionId];
         const commandStr = `claude ${commandArgs.join(' ')}`;
-        
-        // Show executing status
-        setStatusMessage(`Executing: ${commandStr}`);
-        
-        // Small delay to show the message before clearing screen
-        setTimeout(() => {
-          // Exit the app first to stop Ink rendering
-          exit();
-          
-          // Output helpful information for the user
-          console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
-          console.log(`Directory: ${selectedConv.projectPath}`);
-          console.log(`Executing: ${commandStr}`);
-          console.log('---');
-          
-          // Windows-specific reminder before Claude starts
-          if (process.platform === 'win32') {
-            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
-            console.log('');
-          }
-          
-          // Spawn claude process (same for all platforms)
-          // Use shell command string to avoid deprecation warning
-          const claudeCommand = `claude ${commandArgs.join(' ')}`;
-          const claude = spawn(claudeCommand, {
-            stdio: 'inherit',
-            cwd: selectedConv.projectPath,
-            shell: true
-          });
-          
-          claude.on('error', (err) => {
-            console.error('\nFailed to resume conversation:', err.message);
-            console.error('Make sure Claude Code is installed and available in PATH');
-            console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
-            
-            // Fallback: copy session ID to clipboard
-            try {
-              clipboardy.writeSync(selectedConv.sessionId);
-              console.log(`\nSession ID copied to clipboard: ${selectedConv.sessionId}`);
-              console.log(`Project directory: ${selectedConv.projectPath}`);
-              console.log(`You can manually run:`);
-              console.log(`  cd "${selectedConv.projectPath}"`);
-              const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
-              console.log(`  claude ${argsStr}--resume ${selectedConv.sessionId}`);
-            } catch (clipErr) {
-              console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
-            }
-            
-            process.exit(1);
-          });
-          
-          claude.on('close', (code) => {
-            process.exit(code || 0);
-          });
-        }, EXECUTE_DELAY_MS); // Show status message before executing
+        executeClaudeCommand(
+          selectedConv, 
+          commandArgs, 
+          `Executing: ${commandStr}`,
+          'resume'
+        );
       }
     }
 
@@ -249,45 +263,12 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
         const commandArgs = [...claudeArgs];
-        const commandStr = `claude ${commandArgs.join(' ')}`;
-        
-        // Show executing status
-        setStatusMessage(`Starting new session in: ${selectedConv.projectPath}`);
-        
-        setTimeout(() => {
-          // Exit the app first
-          exit();
-          
-          // Output helpful information
-          console.log(`\nStarting new session in: ${selectedConv.projectPath}`);
-          console.log(`Executing: ${commandStr}`);
-          console.log('---');
-          
-          // Windows-specific reminder
-          if (process.platform === 'win32') {
-            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
-            console.log('');
-          }
-          
-          // Spawn claude process without --resume
-          const claudeCommand = `claude ${commandArgs.join(' ')}`;
-          const claude = spawn(claudeCommand, {
-            stdio: 'inherit',
-            cwd: selectedConv.projectPath,
-            shell: true
-          });
-          
-          claude.on('error', (err) => {
-            console.error('\nFailed to start new session:', err.message);
-            console.error('Make sure Claude Code is installed and available in PATH');
-            console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
-            process.exit(1);
-          });
-          
-          claude.on('close', (code) => {
-            process.exit(code || 0);
-          });
-        }, EXECUTE_DELAY_MS);
+        executeClaudeCommand(
+          selectedConv,
+          commandArgs,
+          `Starting new session in: ${selectedConv.projectPath}`,
+          'start'
+        );
       }
     }
 
