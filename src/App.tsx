@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput, useApp, useStdout } from 'ink';
 import { ConversationList } from './components/ConversationList.js';
 import { ConversationPreview } from './components/ConversationPreview.js';
+import { CommandEditor } from './components/CommandEditor.js';
 import { getPaginatedConversations } from './utils/conversationReader.js';
 import { spawn } from 'child_process';
 import clipboardy from 'clipboardy';
@@ -40,6 +41,8 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const [dimensions, setDimensions] = useState({ width: DEFAULT_TERMINAL_WIDTH, height: DEFAULT_TERMINAL_HEIGHT });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [config, setConfig] = useState<Config | null>(null);
+  const [showCommandEditor, setShowCommandEditor] = useState(false);
+  const [editedArgs, setEditedArgs] = useState<string[]>(claudeArgs);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -180,6 +183,9 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   }, [currentPage, currentDirOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useInput((input, key) => {
+    // Don't process any input when command editor is shown
+    if (showCommandEditor) return;
+    
     if (!config) return;
     
     if (matchesKeyBinding(input, key, config.keybindings.quit)) {
@@ -231,7 +237,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     if (matchesKeyBinding(input, key, config.keybindings.confirm)) {
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
-        const commandArgs = [...claudeArgs, '--resume', selectedConv.sessionId];
+        const commandArgs = [...editedArgs, '--resume', selectedConv.sessionId];
         const commandStr = `claude ${commandArgs.join(' ')}`;
         executeClaudeCommand(
           selectedConv, 
@@ -262,7 +268,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
       // Start new session without resuming
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
-        const commandArgs = [...claudeArgs];
+        const commandArgs = [...editedArgs];
         executeClaudeCommand(
           selectedConv,
           commandArgs,
@@ -270,6 +276,10 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
           'start'
         );
       }
+    }
+
+    if (matchesKeyBinding(input, key, config.keybindings.openCommandEditor)) {
+      setShowCommandEditor(true);
     }
 
   });
@@ -310,6 +320,19 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
   const previewHeight = Math.max(MIN_PREVIEW_HEIGHT, dimensions.height - totalUsedHeight);
 
+  if (showCommandEditor) {
+    return (
+      <CommandEditor
+        initialArgs={editedArgs}
+        onComplete={(args) => {
+          setEditedArgs(args);
+          setShowCommandEditor(false);
+        }}
+        onCancel={() => setShowCommandEditor(false)}
+      />
+    );
+  }
+
   return (
     <Box flexDirection="column" width={dimensions.width} paddingX={1} paddingY={0}>
       <Box height={headerHeight} flexDirection="column">
@@ -328,6 +351,9 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
               );
             })()}
           </Text>
+          {editedArgs.length > 0 && (
+            <Text color="yellow"> | Options: {editedArgs.join(' ')}</Text>
+          )}
         </Box>
       </Box>
       

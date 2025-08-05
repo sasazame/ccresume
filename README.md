@@ -18,6 +18,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 🚀 Start new Claude sessions in selected project directories
 - 📁 Filter conversations to current directory with `.` argument
 - 🎭 Hide specific message types for cleaner display
+- ⚙️ Edit Claude command options interactively before starting sessions
 
 ![ccresume demo](docs/images/demo.gif)
 
@@ -99,6 +100,18 @@ ccresume . --hide --dangerously-skip-permissions
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (both native & WSL)
 
+## Command Editor
+
+Press `-` to open the command editor, where you can configure Claude CLI options before starting or resuming a session. The editor provides:
+
+- **Autocomplete suggestions** - Type `-` to see matching Claude options
+- **Official help text** - View all available Claude CLI options
+- **Interactive editing** - Use arrow keys, Tab for autocomplete, Enter to confirm
+
+The configured options will be passed to Claude when you start a new session (`n`) or resume a conversation (`Enter`).
+
+**Note**: The options list is based on Claude's help text at a specific point in time. Please refer to `claude --help` for the latest available options. Some options like `-r`, `-c`, `-h` may interfere with ccresume's functionality.
+
 ## Keyboard Controls
 
 ### Default Key Bindings
@@ -110,6 +123,7 @@ ccresume . --hide --dangerously-skip-permissions
 | Select Next | `↓` |
 | Confirm/Resume | `Enter` |
 | Start New Session | `n` |
+| Edit Command Options | `-` |
 | Copy Session ID | `c` |
 | Scroll Up | `k` |
 | Scroll Down | `j` |
@@ -139,6 +153,8 @@ scrollTop = ["g"]
 scrollBottom = ["shift+g"]
 pageNext = ["right", "n"]
 pagePrevious = ["left", "p"]
+startNewSession = ["n"]
+openCommandEditor = ["-"]
 ```
 
 See `config.toml.example` in the repository for a complete example.

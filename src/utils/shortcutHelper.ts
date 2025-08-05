@@ -38,6 +38,7 @@ export function getShortcutText(config: Config): string {
   shortcuts.push(`Bottom: ${formatKeys(config.keybindings.scrollBottom)}`);
   shortcuts.push(`Resume: ${formatKeys(config.keybindings.confirm)}`);
   shortcuts.push(`New: ${formatKeys(config.keybindings.startNewSession)}`);
+  shortcuts.push(`Edit: ${formatKeys(config.keybindings.openCommandEditor)}`);
   shortcuts.push(`Copy ID: ${formatKeys(config.keybindings.copySessionId)}`);
   shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
   

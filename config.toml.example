@@ -30,3 +30,6 @@ pagePrevious = ["left"]
 # Session controls
 # Start a new Claude session in the selected project directory
 startNewSession = ["n"]
+
+# Open command editor to configure Claude CLI options
+openCommandEditor = ["-"]

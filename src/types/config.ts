@@ -13,6 +13,7 @@ export interface KeyBindings {
   pageNext: string[];
   pagePrevious: string[];
   startNewSession: string[];
+  openCommandEditor: string[];
 }
 
 export interface Config {
@@ -35,5 +36,6 @@ export const defaultConfig: Config = {
     pageNext: ['right'],
     pagePrevious: ['left'],
     startNewSession: ['n'],
+    openCommandEditor: ['-'],
   },
 };
