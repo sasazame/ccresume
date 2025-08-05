@@ -15,6 +15,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 📋 Browse all Claude Code conversations across projects
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
+- 🚀 Start new Claude sessions in selected project directories
 - 📁 Filter conversations to current directory with `.` argument
 - 🎭 Hide specific message types for cleaner display
 
@@ -108,6 +109,7 @@ ccresume . --hide --dangerously-skip-permissions
 | Select Previous | `↑` |
 | Select Next | `↓` |
 | Confirm/Resume | `Enter` |
+| Start New Session | `n` |
 | Copy Session ID | `c` |
 | Scroll Up | `k` |
 | Scroll Down | `j` |

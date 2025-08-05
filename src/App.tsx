@@ -243,6 +243,54 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
         }
       }
     }
+
+    if (matchesKeyBinding(input, key, config.keybindings.startNewSession)) {
+      // Start new session without resuming
+      const selectedConv = conversations[selectedIndex];
+      if (selectedConv) {
+        const commandArgs = [...claudeArgs];
+        const commandStr = `claude ${commandArgs.join(' ')}`;
+        
+        // Show executing status
+        setStatusMessage(`Starting new session in: ${selectedConv.projectPath}`);
+        
+        setTimeout(() => {
+          // Exit the app first
+          exit();
+          
+          // Output helpful information
+          console.log(`\nStarting new session in: ${selectedConv.projectPath}`);
+          console.log(`Executing: ${commandStr}`);
+          console.log('---');
+          
+          // Windows-specific reminder
+          if (process.platform === 'win32') {
+            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
+            console.log('');
+          }
+          
+          // Spawn claude process without --resume
+          const claudeCommand = `claude ${commandArgs.join(' ')}`;
+          const claude = spawn(claudeCommand, {
+            stdio: 'inherit',
+            cwd: selectedConv.projectPath,
+            shell: true
+          });
+          
+          claude.on('error', (err) => {
+            console.error('\nFailed to start new session:', err.message);
+            console.error('Make sure Claude Code is installed and available in PATH');
+            console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
+            process.exit(1);
+          });
+          
+          claude.on('close', (code) => {
+            process.exit(code || 0);
+          });
+        }, EXECUTE_DELAY_MS);
+      }
+    }
+
   });
 
   if (loading) {

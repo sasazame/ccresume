@@ -5,6 +5,11 @@ export function getShortcutText(config: Config): string {
   
   // Format keybindings for display
   const formatKeys = (keys: string[]): string => {
+    // Handle empty key bindings
+    if (!keys || keys.length === 0) {
+      return 'undefined';
+    }
+    
     return keys.map(key => {
       // Convert special key names to display format
       if (key.includes('+')) {
@@ -32,8 +37,16 @@ export function getShortcutText(config: Config): string {
   shortcuts.push(`Top: ${formatKeys(config.keybindings.scrollTop)}`);
   shortcuts.push(`Bottom: ${formatKeys(config.keybindings.scrollBottom)}`);
   shortcuts.push(`Resume: ${formatKeys(config.keybindings.confirm)}`);
-  shortcuts.push(`Copy session ID: ${formatKeys(config.keybindings.copySessionId)}`);
+  shortcuts.push(`New: ${formatKeys(config.keybindings.startNewSession)}`);
+  shortcuts.push(`Copy ID: ${formatKeys(config.keybindings.copySessionId)}`);
   shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
   
-  return shortcuts.join(' • ');
+  const shortcutText = shortcuts.join(' • ');
+  
+  return shortcutText;
+}
+
+export function hasKeyConflict(config: Config): boolean {
+  // Check if any keybinding has 'undefined' (empty array)
+  return Object.values(config.keybindings).some(keys => !keys || keys.length === 0);
 }
