@@ -73,6 +73,7 @@ Keyboard Controls:
   j/k           Scroll chat history  
   Enter         Resume selected conversation
   n             Start new session in selected directory
+  -             Edit command options for Claude
   c             Copy session ID
   q             Quit
 
