@@ -205,6 +205,40 @@ describe('ConversationPreviewFull', () => {
           type: 'assistant',
           message: {
             role: 'assistant',
+            content: [
+              {
+                type: 'thinking',
+                thinking: 'This is my thought process'
+              }
+            ]
+          },
+          cwd: '/test/project'
+        }
+      ]
+    };
+
+    const { lastFrame } = render(
+      <ConversationPreviewFull 
+        conversation={conversationWithThinking} 
+        hideOptions={['thinking']}
+      />
+    );
+    
+    const output = lastFrame();
+    expect(output).not.toContain('[Thinking...]');
+    expect(output).not.toContain('This is my thought process');
+  });
+
+  it('should hide simple thinking string messages when hideOptions includes thinking', () => {
+    const conversationWithThinking: Conversation = {
+      ...mockConversation,
+      messages: [
+        {
+          sessionId: 'test-session-123',
+          timestamp: '2024-01-01T12:00:00Z',
+          type: 'assistant',
+          message: {
+            role: 'assistant',
             content: '[Thinking...]'
           },
           cwd: '/test/project'
