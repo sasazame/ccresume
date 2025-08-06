@@ -92,14 +92,15 @@ npm publish
 
 ### 7. Create GitHub Release
 
-Create a GitHub release with release notes:
+Create a GitHub release using the CHANGELOG content:
 
 ```bash
-# Automatically generate release notes from commits
-gh release create v$(node -p "require('./package.json').version") --generate-notes
+# Extract the latest version section from CHANGELOG.md
+VERSION=$(node -p "require('./package.json').version")
+NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
 
-# Or with custom notes
-gh release create v$(node -p "require('./package.json').version") --notes "Release notes here"
+# Create release with CHANGELOG notes
+gh release create "v$VERSION" --notes "$NOTES"
 ```
 
 ### 8. Merge Back to Develop
@@ -157,7 +158,9 @@ echo "Publishing to npm..."
 npm publish
 
 echo "Creating GitHub release..."
-gh release create "v$(node -p "require('./package.json').version")" --generate-notes
+VERSION=$(node -p "require('./package.json').version")
+NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
+gh release create "v$VERSION" --notes "$NOTES"
 
 echo "Creating merge-back PR..."
 gh pr create --base develop --head master --title "chore: merge back v$(node -p "require('./package.json').version") release changes" --body "Merge back release changes"
