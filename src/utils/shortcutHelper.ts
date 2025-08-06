@@ -41,7 +41,6 @@ export function getShortcutText(config: Config): string {
   shortcuts.push(`Edit: ${formatKeys(config.keybindings.openCommandEditor)}`);
   shortcuts.push(`Copy ID: ${formatKeys(config.keybindings.copySessionId)}`);
   shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
-  shortcuts.push(`Full view: ${formatKeys(config.keybindings.toggleFullView)} (experimental)`);
   
   const shortcutText = shortcuts.join(' • ');
   

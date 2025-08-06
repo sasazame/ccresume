@@ -14,7 +14,6 @@ export interface KeyBindings {
   pagePrevious: string[];
   startNewSession: string[];
   openCommandEditor: string[];
-  toggleFullView: string[];
 }
 
 export interface Config {
@@ -38,6 +37,5 @@ export const defaultConfig: Config = {
     pagePrevious: ['left'],
     startNewSession: ['n'],
     openCommandEditor: ['-'],
-    toggleFullView: ['f'],
   },
 };
