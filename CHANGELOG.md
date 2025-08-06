@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-08-06
+
 ### Added
 - Display git branch in conversation preview for newer Claude Code versions (#46)
 - New session feature - press `n` to start a new Claude session in selected project directory (#48)
 - Interactive command editor - press `-` to edit Claude CLI options before starting/resuming sessions (#49)
 - Full conversation view (experimental) - press `f` to toggle full message view (#50)
+
+### Changed
+- Major version bump to indicate project maturity and feature completeness
+- Improved type safety and test coverage throughout the codebase (#51)
 
 ## [0.3.1] - 2025-07-13
 
