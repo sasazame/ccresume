@@ -4,7 +4,7 @@ export interface Message {
   type: 'user' | 'assistant';
   message?: {
     role: 'user' | 'assistant';
-    content?: string | Array<{ type: string; text?: string; name?: string; input?: unknown; tool_use_id?: string }>;
+    content?: string | Array<{ type: string; text?: string; name?: string; input?: unknown; tool_use_id?: string; thinking?: string }>;
   };
   cwd: string;
   toolUseResult?: {
@@ -14,6 +14,35 @@ export interface Message {
     durationMs?: number;
     interrupted?: boolean;
     isImage?: boolean;
+    // TodoWrite results
+    oldTodos?: Array<{ id: string; content: string; status: string; priority: string }>;
+    newTodos?: Array<{ id: string; content: string; status: string; priority: string }>;
+    // Read results
+    file?: {
+      filePath: string;
+      content: string;
+      numLines: number;
+      startLine: number;
+      totalLines: number;
+    };
+    filePath?: string;
+    numLines?: number;
+    // Edit results
+    oldString?: string;
+    newString?: string;
+    originalFile?: string;
+    replaceAll?: boolean;
+    structuredPatch?: unknown;
+    userModified?: boolean;
+    // Other tool results
+    type?: string;
+    content?: string;
+    mode?: string;
+    numFiles?: number;
+    totalDurationMs?: number;
+    totalTokens?: number;
+    totalToolUseCount?: number;
+    usage?: unknown;
   };
 }
 
