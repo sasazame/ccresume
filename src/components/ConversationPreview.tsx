@@ -154,7 +154,8 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   const visibleMessages = filteredMessages.slice(scrollOffset, scrollOffset + maxVisibleMessages);
   
   // Calculate safe width for text wrapping
-  const safeWidth = Math.max(40, terminalWidth - 20);
+  // Account for borders (2) and padding (2) on each side
+  const safeWidth = Math.max(40, terminalWidth - 4);
 
 
   return (
@@ -168,15 +169,15 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         
         <Box>
           <Text bold>Session: </Text>
-          <Text color="yellow">{conversation.sessionId}</Text>
+          <Text color="yellow">{strictTruncateByWidth(conversation.sessionId, safeWidth - 10)}</Text>
         </Box>
         <Box>
           <Text bold>Directory: </Text>
-          <Text>{conversation.projectPath}</Text>
+          <Text>{strictTruncateByWidth(conversation.projectPath, safeWidth - 12)}</Text>
         </Box>
         <Box marginBottom={1}>
           <Text bold>Branch: </Text>
-          <Text>{conversation.gitBranch || '-'}</Text>
+          <Text>{strictTruncateByWidth(conversation.gitBranch || '-', safeWidth - 9)}</Text>
         </Box>
       </Box>
 
@@ -260,7 +261,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         ) : config ? (
           <Box>
             <Text color="magenta">
-              {getShortcutText(config)}
+              {getShortcutText(config, terminalWidth)}
             </Text>
             {hasKeyConflict(config) && (
               <>

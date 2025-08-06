@@ -1,6 +1,6 @@
 import { Config } from '../types/config.js';
 
-export function getShortcutText(config: Config): string {
+export function getShortcutText(config: Config, width?: number): string {
   const shortcuts: string[] = [];
   
   // Format keybindings for display
@@ -30,18 +30,32 @@ export function getShortcutText(config: Config): string {
     }).join('/');
   };
   
-  // Build shortcuts in logical groups
-  shortcuts.push(`Select: ${formatKeys(config.keybindings.selectPrevious)}/${formatKeys(config.keybindings.selectNext)}`);
-  shortcuts.push(`Scroll: ${formatKeys(config.keybindings.scrollUp)}/${formatKeys(config.keybindings.scrollDown)}`);
-  shortcuts.push(`Page: ${formatKeys(config.keybindings.scrollPageDown)}/${formatKeys(config.keybindings.scrollPageUp)}`);
-  shortcuts.push(`Top: ${formatKeys(config.keybindings.scrollTop)}`);
-  shortcuts.push(`Bottom: ${formatKeys(config.keybindings.scrollBottom)}`);
-  shortcuts.push(`Resume: ${formatKeys(config.keybindings.confirm)}`);
-  shortcuts.push(`New: ${formatKeys(config.keybindings.startNewSession)}`);
-  shortcuts.push(`Edit: ${formatKeys(config.keybindings.openCommandEditor)}`);
-  shortcuts.push(`Copy ID: ${formatKeys(config.keybindings.copySessionId)}`);
-  shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
-  shortcuts.push(`Full view: ${formatKeys(config.keybindings.toggleFullView)} (experimental)`);
+  // Determine which shortcuts to show based on available width
+  const isNarrow = width && width < 120;
+  
+  if (isNarrow) {
+    // Compact version for narrow terminals
+    shortcuts.push(`↑↓:Nav`);
+    shortcuts.push(`${formatKeys(config.keybindings.scrollUp)}${formatKeys(config.keybindings.scrollDown)}:Scroll`);
+    shortcuts.push(`${formatKeys(config.keybindings.confirm)}:Resume`);
+    shortcuts.push(`${formatKeys(config.keybindings.startNewSession)}:New Session`);
+    shortcuts.push(`${formatKeys(config.keybindings.openCommandEditor)}:Edit Options`);
+    shortcuts.push(`${formatKeys(config.keybindings.copySessionId)}:Copy`);
+    shortcuts.push(`${formatKeys(config.keybindings.quit)}:Quit`);
+    shortcuts.push(`${formatKeys(config.keybindings.toggleFullView)}:Full`);
+  } else {
+    // Full version for wider terminals - shortened where possible
+    shortcuts.push(`Nav: ${formatKeys(config.keybindings.selectPrevious)}/${formatKeys(config.keybindings.selectNext)}`);
+    shortcuts.push(`Scroll: ${formatKeys(config.keybindings.scrollUp)}/${formatKeys(config.keybindings.scrollDown)}`);
+    shortcuts.push(`Page: ${formatKeys(config.keybindings.scrollPageUp)}/${formatKeys(config.keybindings.scrollPageDown)}`);
+    shortcuts.push(`Top/Bottom: ${formatKeys(config.keybindings.scrollTop)}/${formatKeys(config.keybindings.scrollBottom)}`);
+    shortcuts.push(`Resume: ${formatKeys(config.keybindings.confirm)}`);
+    shortcuts.push(`New Session: ${formatKeys(config.keybindings.startNewSession)}`);
+    shortcuts.push(`Edit Options: ${formatKeys(config.keybindings.openCommandEditor)}`);
+    shortcuts.push(`Copy: ${formatKeys(config.keybindings.copySessionId)}`);
+    shortcuts.push(`Quit: ${formatKeys(config.keybindings.quit)}`);
+    shortcuts.push(`Full: ${formatKeys(config.keybindings.toggleFullView)} (experimental)`);
+  }
   
   const shortcutText = shortcuts.join(' • ');
   

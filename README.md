@@ -19,6 +19,7 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 📁 Filter conversations to current directory with `.` argument
 - 🎭 Hide specific message types for cleaner display
 - ⚙️ Edit Claude command options interactively before starting sessions
+- 🔄 Toggle full conversation view to see complete message history
 
 ![ccresume demo](docs/images/demo.gif)
 
@@ -133,6 +134,7 @@ The configured options will be passed to Claude when you start a new session (`n
 | Scroll to Bottom | `G` |
 | Next Page | `→`|
 | Previous Page | `←` |
+| Toggle Full View | `f` |
 
 ### Custom Key Bindings
 
@@ -155,6 +157,7 @@ pageNext = ["right", "n"]
 pagePrevious = ["left", "p"]
 startNewSession = ["n"]
 openCommandEditor = ["-"]
+toggleFullView = ["f"]
 ```
 
 See `config.toml.example` in the repository for a complete example.

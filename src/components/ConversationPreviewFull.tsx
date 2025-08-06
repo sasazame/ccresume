@@ -4,6 +4,67 @@ import { format } from 'date-fns';
 import type { Conversation } from '../types.js';
 import { extractMessageText } from '../utils/messageUtils.js';
 
+// Type definitions for tool inputs
+interface TodoWriteInput {
+  todos?: Array<{
+    id: string;
+    content: string;
+    status: string;
+    priority: string;
+  }>;
+}
+
+interface EditInput {
+  filePath?: string;
+  file_path?: string;
+  oldString?: string;
+  old_string?: string;
+  newString?: string;
+  new_string?: string;
+}
+
+interface ReadInput {
+  filePath?: string;
+  file_path?: string;
+  offset?: number;
+  limit?: number;
+}
+
+interface BashInput {
+  command?: string;
+  cmd?: string;
+}
+
+interface GrepInput {
+  pattern?: string;
+  glob?: string;
+  path?: string;
+}
+
+interface GlobInput {
+  pattern?: string;
+}
+
+interface MultiEditInput {
+  filePath?: string;
+  file_path?: string;
+  edits?: Array<{
+    oldString?: string;
+    old_string?: string;
+    newString?: string;
+    new_string?: string;
+  }>;
+}
+
+type MessageContentItem = {
+  type: string;
+  text?: string;
+  name?: string;
+  input?: unknown;
+  tool_use_id?: string;
+  thinking?: string;
+};
+
 interface ConversationPreviewFullProps {
   conversation: Conversation | null;
   statusMessage?: string | null;
@@ -97,28 +158,28 @@ export const ConversationPreviewFull: React.FC<ConversationPreviewFullProps> = (
               const contentParts: string[] = [];
               
               // Check for thinking content
-              const thinkingItem = messageContent.find((item: any) => item.type === 'thinking');
+              const thinkingItem = messageContent.find((item: MessageContentItem) => item.type === 'thinking');
               if (thinkingItem && thinkingItem.thinking) {
                 contentParts.push(`[Thinking...]\n${thinkingItem.thinking.trim()}`);
               }
               
               // Check for regular text content
-              const textItems = messageContent.filter((item: any) => item.type === 'text');
-              textItems.forEach((item: any) => {
+              const textItems = messageContent.filter((item: MessageContentItem) => item.type === 'text');
+              textItems.forEach((item: MessageContentItem) => {
                 if (item.text) {
                   contentParts.push(item.text);
                 }
               });
               
               // Check for tool use
-              const toolUse = messageContent.find((item: any) => item.type === 'tool_use');
+              const toolUse = messageContent.find((item: MessageContentItem) => item.type === 'tool_use');
               if (toolUse) {
                 // Format tool use based on tool name
                 if (toolUse.name === 'TodoWrite') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as TodoWriteInput;
                   if (input?.todos) {
                     const todos = input.todos;
-                    const todoSummary = todos.map((todo: any) => 
+                    const todoSummary = todos.map((todo) => 
                       `  ${todo.status === 'completed' ? '✓' : todo.status === 'in_progress' ? '→' : '○'} ${todo.content}`
                     ).join('\n');
                     contentParts.push(`[Tool: TodoWrite]\n${todoSummary}`);
@@ -126,30 +187,30 @@ export const ConversationPreviewFull: React.FC<ConversationPreviewFullProps> = (
                     contentParts.push(`[Tool: TodoWrite]`);
                   }
                 } else if (toolUse.name === 'Edit') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as EditInput;
                   const filePath = input?.filePath || input?.file_path || 'file';
                   const oldStr = input?.oldString || input?.old_string || '';
                   const newStr = input?.newString || input?.new_string || '';
                   contentParts.push(`[Tool: Edit] ${filePath}\nOld:\n${oldStr}\nNew:\n${newStr}`);
                 } else if (toolUse.name === 'Read') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as ReadInput;
                   const filePath = input?.filePath || input?.file_path || 'file';
                   const lineInfo = input?.offset ? ` (lines ${input.offset}-${input.offset + (input.limit || 50)})` : '';
                   contentParts.push(`[Tool: Read] ${filePath}${lineInfo}`);
                 } else if (toolUse.name === 'Bash') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as BashInput;
                   contentParts.push(`[Tool: Bash] ${input?.command || input?.cmd || ''}`);
                 } else if (toolUse.name === 'Grep') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as GrepInput;
                   contentParts.push(`[Tool: Grep] pattern: "${input?.pattern || ''}" in ${input?.glob || input?.path || '.'}`);
                 } else if (toolUse.name === 'Glob') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as GlobInput;
                   contentParts.push(`[Tool: Glob] pattern: "${input?.pattern || ''}"`);
                 } else if (toolUse.name === 'MultiEdit') {
-                  const input = toolUse.input as any;
+                  const input = toolUse.input as MultiEditInput;
                   const filePath = input?.filePath || input?.file_path || 'file';
                   const edits = input?.edits || [];
-                  const editSummary = edits.map((edit: any, i: number) => 
+                  const editSummary = edits.map((edit, i: number) => 
                     `Edit ${i + 1}:\nOld:\n${edit.oldString || edit.old_string || ''}\nNew:\n${edit.newString || edit.new_string || ''}`
                   ).join('\n\n');
                   contentParts.push(`[Tool: MultiEdit] ${filePath}\n${editSummary}`);
@@ -171,8 +232,8 @@ export const ConversationPreviewFull: React.FC<ConversationPreviewFullProps> = (
             const result = msg.toolUseResult;
             if (result.oldTodos && result.newTodos) {
               // TodoWrite result
-              const changes = result.newTodos.filter((newTodo: any) => {
-                const oldTodo = result.oldTodos?.find((old: any) => old.id === newTodo.id);
+              const changes = result.newTodos.filter((newTodo) => {
+                const oldTodo = result.oldTodos?.find((old) => old.id === newTodo.id);
                 return !oldTodo || oldTodo.status !== newTodo.status || oldTodo.content !== newTodo.content;
               });
               content = `[TodoWrite Result] ${changes.length} todos updated`;
