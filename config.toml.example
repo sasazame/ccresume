@@ -33,3 +33,6 @@ startNewSession = ["n"]
 
 # Open command editor to configure Claude CLI options
 openCommandEditor = ["-"]
+
+# Toggle full message view (experimental)
+toggleFullView = ["f"]

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput, useApp, useStdout } from 'ink';
 import { ConversationList } from './components/ConversationList.js';
 import { ConversationPreview } from './components/ConversationPreview.js';
+import { ConversationPreviewFull } from './components/ConversationPreviewFull.js';
 import { CommandEditor } from './components/CommandEditor.js';
 import { getPaginatedConversations } from './utils/conversationReader.js';
 import { spawn } from 'child_process';
@@ -43,6 +44,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const [config, setConfig] = useState<Config | null>(null);
   const [showCommandEditor, setShowCommandEditor] = useState(false);
   const [editedArgs, setEditedArgs] = useState<string[]>(claudeArgs);
+  const [showFullView, setShowFullView] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -192,6 +194,20 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
       exit();
     }
 
+    // Handle full view toggle first
+    if (matchesKeyBinding(input, key, config.keybindings.toggleFullView)) {
+      setShowFullView(prev => !prev);
+      // Show temporary status message
+      setStatusMessage(showFullView ? 'Switched to normal view' : 'Switched to full view');
+      setTimeout(() => setStatusMessage(null), STATUS_MESSAGE_DURATION_MS);
+      return;
+    }
+
+    // In full view, disable all navigation keys except quit and toggle
+    if (showFullView) {
+      return;
+    }
+
     if (loading || conversations.length === 0) return;
 
     // Calculate pagination values
@@ -319,7 +335,7 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const bottomMargin = BOTTOM_MARGIN;
   const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
   const previewHeight = Math.max(MIN_PREVIEW_HEIGHT, dimensions.height - totalUsedHeight);
-
+  
   if (showCommandEditor) {
     return (
       <CommandEditor
@@ -331,6 +347,10 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
         onCancel={() => setShowCommandEditor(false)}
       />
     );
+  }
+
+  if (showFullView) {
+    return <ConversationPreviewFull conversation={selectedConversation} statusMessage={statusMessage} hideOptions={hideOptions} />;
   }
 
   return (
