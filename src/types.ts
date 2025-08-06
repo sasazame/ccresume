@@ -25,7 +25,7 @@ export interface Message {
       startLine: number;
       totalLines: number;
     };
-    filePath?: string;
+    filePath?: string; // Fallback for different result formats
     numLines?: number;
     // Edit results
     oldString?: string;
