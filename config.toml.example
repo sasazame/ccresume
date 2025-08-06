@@ -24,5 +24,15 @@ scrollTop = ["g"]
 scrollBottom = ["G"]
 
 # Pagination controls
-pageNext = ["right", "n"]
-pagePrevious = ["left", "p"]
+pageNext = ["right"]
+pagePrevious = ["left"]
+
+# Session controls
+# Start a new Claude session in the selected project directory
+startNewSession = ["n"]
+
+# Open command editor to configure Claude CLI options
+openCommandEditor = ["-"]
+
+# Toggle full message view (experimental)
+toggleFullView = ["f"]

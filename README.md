@@ -15,8 +15,11 @@ ccresume provides an interactive terminal interface to browse and manage your Cl
 - 📋 Browse all Claude Code conversations across projects
 - 🔍 View detailed conversation information
 - 📎 Copy session IDs to clipboard
+- 🚀 Start new Claude sessions in selected project directories
 - 📁 Filter conversations to current directory with `.` argument
 - 🎭 Hide specific message types for cleaner display
+- ⚙️ Edit Claude command options interactively before starting sessions
+- 🔄 Toggle full conversation view to see complete message history
 
 ![ccresume demo](docs/images/demo.gif)
 
@@ -96,7 +99,19 @@ ccresume . --hide --dangerously-skip-permissions
 
 - **Node.js** >= 18
 - **Claude Code** - Must be installed and configured
-- **Operating System** - Works on macOS, Linux, and Windows (with WSL)
+- **Operating System** - Works on macOS, Linux, and Windows (both native & WSL)
+
+## Command Editor
+
+Press `-` to open the command editor, where you can configure Claude CLI options before starting or resuming a session. The editor provides:
+
+- **Autocomplete suggestions** - Type `-` to see matching Claude options
+- **Official help text** - View all available Claude CLI options
+- **Interactive editing** - Use arrow keys, Tab for autocomplete, Enter to confirm
+
+The configured options will be passed to Claude when you start a new session (`n`) or resume a conversation (`Enter`).
+
+**Note**: The options list is based on Claude's help text at a specific point in time. Please refer to `claude --help` for the latest available options. Some options like `-r`, `-c`, `-h` may interfere with ccresume's functionality.
 
 ## Keyboard Controls
 
@@ -108,6 +123,8 @@ ccresume . --hide --dangerously-skip-permissions
 | Select Previous | `↑` |
 | Select Next | `↓` |
 | Confirm/Resume | `Enter` |
+| Start New Session | `n` |
+| Edit Command Options | `-` |
 | Copy Session ID | `c` |
 | Scroll Up | `k` |
 | Scroll Down | `j` |
@@ -117,6 +134,7 @@ ccresume . --hide --dangerously-skip-permissions
 | Scroll to Bottom | `G` |
 | Next Page | `→`|
 | Previous Page | `←` |
+| Toggle Full View | `f` |
 
 ### Custom Key Bindings
 
@@ -137,6 +155,9 @@ scrollTop = ["g"]
 scrollBottom = ["shift+g"]
 pageNext = ["right", "n"]
 pagePrevious = ["left", "p"]
+startNewSession = ["n"]
+openCommandEditor = ["-"]
+toggleFullView = ["f"]
 ```
 
 See `config.toml.example` in the repository for a complete example.
@@ -217,7 +238,8 @@ Below are known issues and limitations. Contributions and suggestions are welcom
 | No. | Title | Description | Issue |
 |:---:|:------|:-------------|:-----|
 | 1 | **Incomplete conversation history restoration on resume** | When resuming with ccresume, sometimes, only the tail end of the history is restored. Although the interactive `claude -r` can restore full history. Workaround: use `claude -r` interactively or `claude -c`. | [#2](https://github.com/sasazame/ccresume/issues/2) |
-| 2 | **Restore original console state after exiting ccresume** | Exiting `ccresume` leaves the chat selection interface visible and hides previous terminal content. A feature branch exists but has scroll-lock issues. Plan: optional `--preserve-screen` flag. | [#3](https://github.com/sasazame/ccresume/issues/3) |
+| 2 | **~~Restore original console state after exiting ccresume~~** | ~~Exiting `ccresume` leaves the chat selection interface visible and hides previous terminal content.~~ **This is fixed in v0.3.1**: Terminal scrollback buffer is now preserved when exiting. | [#3](https://github.com/sasazame/ccresume/issues/3) |
 | 3 | **Resume ordering may be incorrect** | For performance issue, `ccresume` sorts logs by file system timestamps (not chat content), so display order may not match actual chronology after migration. Workaround: preserve file timestamps. | – |
+| 4 | **Windows native terminal limitations** | On Windows native terminals, interactive features may have limited functionality due to terminal input handling differences. Temporarily, in the Windows native environment, a warning message will be displayed before startup. | [#32](https://github.com/sasazame/ccresume/issues/32) |
 
 Remember: This is an unofficial tool. For official Claude Code support, please refer to Anthropic's documentation.

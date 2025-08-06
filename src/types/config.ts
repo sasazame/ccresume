@@ -12,6 +12,9 @@ export interface KeyBindings {
   scrollBottom: string[];
   pageNext: string[];
   pagePrevious: string[];
+  startNewSession: string[];
+  openCommandEditor: string[];
+  toggleFullView: string[];
 }
 
 export interface Config {
@@ -33,5 +36,8 @@ export const defaultConfig: Config = {
     scrollBottom: ['G'],
     pageNext: ['right'],
     pagePrevious: ['left'],
+    startNewSession: ['n'],
+    openCommandEditor: ['-'],
+    toggleFullView: ['f'],
   },
 };

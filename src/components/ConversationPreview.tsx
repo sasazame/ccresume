@@ -6,7 +6,7 @@ import { extractMessageText } from '../utils/messageUtils.js';
 import { strictTruncateByWidth } from '../utils/strictTruncate.js';
 import { loadConfig } from '../utils/configLoader.js';
 import { matchesKeyBinding } from '../utils/keyBindingHelper.js';
-import { getShortcutText } from '../utils/shortcutHelper.js';
+import { getShortcutText, hasKeyConflict } from '../utils/shortcutHelper.js';
 import type { Config } from '../types/config.js';
 
 interface ConversationPreviewProps {
@@ -154,7 +154,8 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   const visibleMessages = filteredMessages.slice(scrollOffset, scrollOffset + maxVisibleMessages);
   
   // Calculate safe width for text wrapping
-  const safeWidth = Math.max(40, terminalWidth - 20);
+  // Account for borders (2) and padding (2) on each side
+  const safeWidth = Math.max(40, terminalWidth - 4);
 
 
   return (
@@ -168,11 +169,15 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         
         <Box>
           <Text bold>Session: </Text>
-          <Text color="yellow">{conversation.sessionId}</Text>
+          <Text color="yellow">{strictTruncateByWidth(conversation.sessionId, safeWidth - 10)}</Text>
+        </Box>
+        <Box>
+          <Text bold>Directory: </Text>
+          <Text>{strictTruncateByWidth(conversation.projectPath, safeWidth - 12)}</Text>
         </Box>
         <Box marginBottom={1}>
-          <Text bold>Directory: </Text>
-          <Text>{conversation.projectPath}</Text>
+          <Text bold>Branch: </Text>
+          <Text>{strictTruncateByWidth(conversation.gitBranch || '-', safeWidth - 9)}</Text>
         </Box>
       </Box>
 
@@ -254,9 +259,17 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
         {statusMessage ? (
           <Text color="green" bold>{statusMessage}</Text>
         ) : config ? (
-          <Text color="magenta">
-            {getShortcutText(config)}
-          </Text>
+          <Box>
+            <Text color="magenta">
+              {getShortcutText(config, terminalWidth)}
+            </Text>
+            {hasKeyConflict(config) && (
+              <>
+                <Text color="magenta"> • </Text>
+                <Text color="yellow" bold>⚠️ Key conflict - see --help</Text>
+              </>
+            )}
+          </Box>
         ) : (
           <Text color="magenta">Loading shortcuts...</Text>
         )}

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput, useApp, useStdout } from 'ink';
 import { ConversationList } from './components/ConversationList.js';
 import { ConversationPreview } from './components/ConversationPreview.js';
+import { ConversationPreviewFull } from './components/ConversationPreviewFull.js';
+import { CommandEditor } from './components/CommandEditor.js';
 import { getPaginatedConversations } from './utils/conversationReader.js';
 import { spawn } from 'child_process';
 import clipboardy from 'clipboardy';
@@ -40,6 +42,9 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const [dimensions, setDimensions] = useState({ width: DEFAULT_TERMINAL_WIDTH, height: DEFAULT_TERMINAL_HEIGHT });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [config, setConfig] = useState<Config | null>(null);
+  const [showCommandEditor, setShowCommandEditor] = useState(false);
+  const [editedArgs, setEditedArgs] = useState<string[]>(claudeArgs);
+  const [showFullView, setShowFullView] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -74,6 +79,70 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     }
     return undefined;
   }, [stdout]);
+
+  const executeClaudeCommand = (
+    conversation: Conversation,
+    args: string[],
+    statusMsg: string,
+    actionType: 'resume' | 'start'
+  ) => {
+    const commandStr = `claude ${args.join(' ')}`;
+    setStatusMessage(statusMsg);
+    
+    setTimeout(() => {
+      exit();
+      
+      // Output helpful information
+      if (actionType === 'resume') {
+        console.log(`\nResuming conversation: ${conversation.sessionId}`);
+      } else {
+        console.log(`\nStarting new session in: ${conversation.projectPath}`);
+      }
+      console.log(`Directory: ${conversation.projectPath}`);
+      console.log(`Executing: ${commandStr}`);
+      console.log('---');
+      
+      // Windows-specific reminder
+      if (process.platform === 'win32') {
+        console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
+        console.log('');
+      }
+      
+      // Spawn claude process
+      const claude = spawn(commandStr, {
+        stdio: 'inherit',
+        cwd: conversation.projectPath,
+        shell: true
+      });
+      
+      claude.on('error', (err) => {
+        console.error(`\nFailed to ${actionType} ${actionType === 'resume' ? 'conversation' : 'new session'}:`, err.message);
+        console.error('Make sure Claude Code is installed and available in PATH');
+        console.error(`Or the project directory might not exist: ${conversation.projectPath}`);
+        
+        // For resume action, provide clipboard fallback
+        if (actionType === 'resume') {
+          try {
+            clipboardy.writeSync(conversation.sessionId);
+            console.log(`\nSession ID copied to clipboard: ${conversation.sessionId}`);
+            console.log(`Project directory: ${conversation.projectPath}`);
+            console.log(`You can manually run:`);
+            console.log(`  cd "${conversation.projectPath}"`);
+            const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
+            console.log(`  claude ${argsStr}--resume ${conversation.sessionId}`);
+          } catch (clipErr) {
+            console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
+          }
+        }
+        
+        process.exit(1);
+      });
+      
+      claude.on('close', (code) => {
+        process.exit(code || 0);
+      });
+    }, EXECUTE_DELAY_MS);
+  };
 
   const loadConversations = async (isPaginating = false) => {
     try {
@@ -116,10 +185,27 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   }, [currentPage, currentDirOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useInput((input, key) => {
+    // Don't process any input when command editor is shown
+    if (showCommandEditor) return;
+    
     if (!config) return;
     
     if (matchesKeyBinding(input, key, config.keybindings.quit)) {
       exit();
+    }
+
+    // Handle full view toggle first
+    if (matchesKeyBinding(input, key, config.keybindings.toggleFullView)) {
+      setShowFullView(prev => !prev);
+      // Show temporary status message
+      setStatusMessage(showFullView ? 'Switched to normal view' : 'Switched to full view');
+      setTimeout(() => setStatusMessage(null), STATUS_MESSAGE_DURATION_MS);
+      return;
+    }
+
+    // In full view, disable all navigation keys except quit and toggle
+    if (showFullView) {
+      return;
     }
 
     if (loading || conversations.length === 0) return;
@@ -167,64 +253,14 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
     if (matchesKeyBinding(input, key, config.keybindings.confirm)) {
       const selectedConv = conversations[selectedIndex];
       if (selectedConv) {
-        // Build the command string for display
-        const commandArgs = [...claudeArgs, '--resume', selectedConv.sessionId];
+        const commandArgs = [...editedArgs, '--resume', selectedConv.sessionId];
         const commandStr = `claude ${commandArgs.join(' ')}`;
-        
-        // Show executing status
-        setStatusMessage(`Executing: ${commandStr}`);
-        
-        // Small delay to show the message before clearing screen
-        setTimeout(() => {
-          // Exit the app first to stop Ink rendering
-          exit();
-          
-          // Output helpful information for the user
-          console.log(`\nResuming conversation: ${selectedConv.sessionId}`);
-          console.log(`Directory: ${selectedConv.projectPath}`);
-          console.log(`Executing: ${commandStr}`);
-          console.log('---');
-          
-          // Windows-specific reminder before Claude starts
-          if (process.platform === 'win32') {
-            console.log('💡 Reminder: If input doesn\'t work, press ENTER to activate.');
-            console.log('');
-          }
-          
-          // Spawn claude process (same for all platforms)
-          // Use shell command string to avoid deprecation warning
-          const claudeCommand = `claude ${commandArgs.join(' ')}`;
-          const claude = spawn(claudeCommand, {
-            stdio: 'inherit',
-            cwd: selectedConv.projectPath,
-            shell: true
-          });
-          
-          claude.on('error', (err) => {
-            console.error('\nFailed to resume conversation:', err.message);
-            console.error('Make sure Claude Code is installed and available in PATH');
-            console.error(`Or the project directory might not exist: ${selectedConv.projectPath}`);
-            
-            // Fallback: copy session ID to clipboard
-            try {
-              clipboardy.writeSync(selectedConv.sessionId);
-              console.log(`\nSession ID copied to clipboard: ${selectedConv.sessionId}`);
-              console.log(`Project directory: ${selectedConv.projectPath}`);
-              console.log(`You can manually run:`);
-              console.log(`  cd "${selectedConv.projectPath}"`);
-              const argsStr = claudeArgs.length > 0 ? claudeArgs.join(' ') + ' ' : '';
-              console.log(`  claude ${argsStr}--resume ${selectedConv.sessionId}`);
-            } catch (clipErr) {
-              console.error('Failed to copy to clipboard:', clipErr instanceof Error ? clipErr.message : String(clipErr));
-            }
-            
-            process.exit(1);
-          });
-          
-          claude.on('close', (code) => {
-            process.exit(code || 0);
-          });
-        }, EXECUTE_DELAY_MS); // Show status message before executing
+        executeClaudeCommand(
+          selectedConv, 
+          commandArgs, 
+          `Executing: ${commandStr}`,
+          'resume'
+        );
       }
     }
 
@@ -243,6 +279,25 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
         }
       }
     }
+
+    if (matchesKeyBinding(input, key, config.keybindings.startNewSession)) {
+      // Start new session without resuming
+      const selectedConv = conversations[selectedIndex];
+      if (selectedConv) {
+        const commandArgs = [...editedArgs];
+        executeClaudeCommand(
+          selectedConv,
+          commandArgs,
+          `Starting new session in: ${selectedConv.projectPath}`,
+          'start'
+        );
+      }
+    }
+
+    if (matchesKeyBinding(input, key, config.keybindings.openCommandEditor)) {
+      setShowCommandEditor(true);
+    }
+
   });
 
   if (loading) {
@@ -280,6 +335,23 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
   const bottomMargin = BOTTOM_MARGIN;
   const totalUsedHeight = headerHeight + listHeight + bottomMargin + safetyMargin;
   const previewHeight = Math.max(MIN_PREVIEW_HEIGHT, dimensions.height - totalUsedHeight);
+  
+  if (showCommandEditor) {
+    return (
+      <CommandEditor
+        initialArgs={editedArgs}
+        onComplete={(args) => {
+          setEditedArgs(args);
+          setShowCommandEditor(false);
+        }}
+        onCancel={() => setShowCommandEditor(false)}
+      />
+    );
+  }
+
+  if (showFullView) {
+    return <ConversationPreviewFull conversation={selectedConversation} statusMessage={statusMessage} hideOptions={hideOptions} />;
+  }
 
   return (
     <Box flexDirection="column" width={dimensions.width} paddingX={1} paddingY={0}>
@@ -299,6 +371,9 @@ const App: React.FC<AppProps> = ({ claudeArgs = [], currentDirOnly = false, hide
               );
             })()}
           </Text>
+          {editedArgs.length > 0 && (
+            <Text color="yellow"> | Options: {editedArgs.join(' ')}</Text>
+          )}
         </Box>
       </Box>
       
