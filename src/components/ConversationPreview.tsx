@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, startTransition } from 'react';
 import { Box, Text, useInput, useStdout } from 'ink';
 import { format } from 'date-fns';
 import type { Conversation } from '../types.js';
@@ -19,19 +19,9 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
   const terminalWidth = stdout?.columns || 80;
-  const [config, setConfig] = useState<Config | null>(null);
+  const config = useMemo<Config>(() => loadConfig(), []);
   
-  // Calculate available height for messages dynamically
-  const [maxVisibleMessages, setMaxVisibleMessages] = useState(10);
-  
-  useEffect(() => {
-    // Load config on mount
-    const loadedConfig = loadConfig();
-    setConfig(loadedConfig);
-  }, []);
-
-  useEffect(() => {
-    // Adjust visible messages based on terminal height
+  const maxVisibleMessages = useMemo(() => {
     const terminalHeight = stdout?.rows || 24;
     // Reserve lines for fixed parts:
     // - Top window: 1 (title) + 8 (conversation list with borders)
@@ -50,8 +40,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
     const bottomMargin = 2;
     const calculatedHeight = terminalHeight - 19 - bottomMargin;
     // Minimum 5 lines, no maximum limit
-    const availableHeight = Math.max(5, calculatedHeight);
-    setMaxVisibleMessages(availableHeight);
+    return Math.max(5, calculatedHeight);
   }, [stdout?.rows]);
 
   // Filter messages based on hideOptions
@@ -97,15 +86,15 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
     if (conversation) {
       const totalMessages = filteredMessages.length;
       const maxOffset = Math.max(0, totalMessages - maxVisibleMessages);
-      setScrollOffset(maxOffset);
+      startTransition(() => setScrollOffset(maxOffset));
     } else {
-      setScrollOffset(0);
+      startTransition(() => setScrollOffset(0));
     }
-  }, [conversation?.sessionId, maxVisibleMessages, filteredMessages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversation, filteredMessages.length, maxVisibleMessages]);
 
 
   useInput((input, key) => {
-    if (!conversation || !config) return;
+    if (!conversation) return;
     
     const totalMessages = filteredMessages.length;
     const maxOffset = Math.max(0, totalMessages - maxVisibleMessages);
