@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { format } from 'date-fns';
 import type { Conversation } from '../types.js';
@@ -115,12 +115,12 @@ export const ConversationPreviewFull: React.FC<ConversationPreviewFullProps> = (
   useEffect(() => {
     // When conversation changes, scroll to the bottom (most recent messages)
     if (conversation) {
-      // Just scroll to the end
-      setScrollOffset(Math.max(0, filteredMessages.length - 1));
+      const newOffset = Math.max(0, filteredMessages.length - 1);
+      startTransition(() => setScrollOffset(newOffset));
     } else {
-      setScrollOffset(0);
+      startTransition(() => setScrollOffset(0));
     }
-  }, [conversation?.sessionId, filteredMessages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversation, filteredMessages.length]);
 
   // Disable all keyboard navigation in full view - only mouse scroll works
   useInput(() => {

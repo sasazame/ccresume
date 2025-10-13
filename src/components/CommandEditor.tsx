@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, startTransition } from 'react';
 import { Box, Text, useInput, useStdout } from 'ink';
 
 interface CommandEditorProps {
@@ -62,25 +62,28 @@ export const CommandEditor: React.FC<CommandEditorProps> = ({ initialArgs, onCom
   const terminalHeight = stdout?.rows || LAYOUT_CONSTANTS.DEFAULT_TERMINAL_HEIGHT;
   const totalHeight = terminalHeight - SAFETY_MARGIN;
 
-  useEffect(() => {
-    // Update suggestions based on current input
-    const currentWord = getCurrentWord();
-    if (currentWord.startsWith('-')) {
-      const matching = claudeOptions.filter(opt => 
-        opt.flags.some(flag => flag.toLowerCase().startsWith(currentWord.toLowerCase()))
-      );
-      setSuggestions(matching);
-      setSelectedSuggestion(0);
-    } else {
-      setSuggestions([]);
-    }
-  }, [commandLine, cursorPosition]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const getCurrentWord = () => {
+  const getCurrentWord = useCallback(() => {
     const beforeCursor = commandLine.substring(0, cursorPosition);
     const words = beforeCursor.split(' ');
     return words[words.length - 1] || '';
-  };
+  }, [commandLine, cursorPosition]);
+
+  useEffect(() => {
+    // Update suggestions based on current input
+    const currentWord = getCurrentWord();
+    startTransition(() => {
+      if (currentWord.startsWith('-')) {
+        const matching = claudeOptions.filter(opt => 
+          opt.flags.some(flag => flag.toLowerCase().startsWith(currentWord.toLowerCase()))
+        );
+        setSuggestions(matching);
+        setSelectedSuggestion(0);
+      } else {
+        setSuggestions([]);
+        setSelectedSuggestion(0);
+      }
+    });
+  }, [commandLine, cursorPosition, getCurrentWord]);
 
   const insertSuggestion = (suggestion: ClaudeOption) => {
     // Guard against invalid suggestions
