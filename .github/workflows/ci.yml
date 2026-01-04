@@ -30,7 +30,7 @@ jobs:
       run: mise run ci
     
     - name: Upload coverage reports
-      if: matrix.node-version == '24'
+      if: matrix.node-version == 24
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: false

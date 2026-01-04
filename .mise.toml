@@ -1,5 +1,5 @@
 [tools]
-node = "22"
+node = "lts"
 lefthook = "latest"
 
 [tasks.setup]
@@ -13,6 +13,26 @@ run = "lefthook install"
 [tasks.ci]
 description = "Run CI checks locally"
 run = ["mise run lint", "mise run typecheck", "mise run test", "mise run build"]
+
+[tasks."ci:node20"]
+description = "Run CI on Node 20"
+run = "mise exec node@20 -- mise run ci"
+
+[tasks."ci:node22"]
+description = "Run CI on Node 22"
+run = "mise exec node@22 -- mise run ci"
+
+[tasks."ci:node24"]
+description = "Run CI on Node 24"
+run = "mise exec node@24 -- mise run ci"
+
+[tasks."ci:matrix"]
+description = "Run CI on supported Node versions (20/22/24)"
+run = ["mise run ci:node20", "mise run ci:node22", "mise run ci:node24"]
+
+[tasks.init]
+description = "Initial setup (deps + hooks)"
+run = ["mise run setup", "mise run hooks:install"]
 
 [tasks."ci:install"]
 description = "Install dependencies for CI"
