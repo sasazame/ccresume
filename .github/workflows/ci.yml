@@ -20,7 +20,7 @@ jobs:
     - name: Setup mise
       uses: jdx/mise-action@v2
       with:
-        tools: node@${{ matrix.node-version }}
+        tool_versions: node@${{ matrix.node-version }}
         cache: true
     
     - name: Install dependencies
