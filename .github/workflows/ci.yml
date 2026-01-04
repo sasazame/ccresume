@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v6
     
     - name: Setup mise
-      uses: jdx/mise-action@v2
+      uses: jdx/mise-action@v3.5.1
       with:
         tool_versions: node@${{ matrix.node-version }}
         cache: true
@@ -26,17 +26,8 @@ jobs:
     - name: Install dependencies
       run: mise run ci:install
     
-    - name: Run linter
-      run: mise run lint
-    
-    - name: Run type check
-      run: mise run typecheck
-    
-    - name: Run tests
-      run: mise run test
-    
-    - name: Build
-      run: mise run build
+    - name: Run CI checks
+      run: mise run ci
     
     - name: Upload coverage reports
       if: matrix.node-version == '24'

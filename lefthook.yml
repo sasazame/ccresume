@@ -1,0 +1,11 @@
+pre-commit:
+  commands:
+    lint:
+      run: mise run lint
+    typecheck:
+      run: mise run typecheck
+
+pre-push:
+  commands:
+    ci:
+      run: mise run ci

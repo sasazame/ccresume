@@ -1,9 +1,18 @@
 [tools]
 node = "22"
+lefthook = "latest"
 
 [tasks.setup]
 description = "Install dependencies"
 run = "npm install"
+
+[tasks."hooks:install"]
+description = "Install git hooks via lefthook"
+run = "lefthook install"
+
+[tasks.ci]
+description = "Run CI checks locally"
+run = ["mise run lint", "mise run typecheck", "mise run test", "mise run build"]
 
 [tasks."ci:install"]
 description = "Install dependencies for CI"

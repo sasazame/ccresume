@@ -178,6 +178,9 @@ mise install
 
 # Install dependencies
 mise run setup
+
+# Install git hooks
+mise run hooks:install
 ```
 
 ### Available Scripts
@@ -203,6 +206,14 @@ mise run lint
 
 # Type check
 mise run typecheck
+```
+
+### Local CI
+
+Run the same checks as CI:
+
+```bash
+mise run ci
 ```
 
 ### Project Structure
