@@ -97,7 +97,7 @@ ccresume . --hide --dangerously-skip-permissions
 
 ## Requirements
 
-- **Node.js** >= 18
+- **Node.js** >= 20 (LTS)
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (both native & WSL)
 
@@ -166,38 +166,43 @@ See `config.toml.example` in the repository for a complete example.
 
 ### Setup
 
+Install mise if it is not already available in your environment.
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/ccresume.git
 cd ccresume
 
+# Install tools via mise
+mise install
+
 # Install dependencies
-npm install
+mise run setup
 ```
 
 ### Available Scripts
 
 ```bash
 # Run in development mode
-npm run dev
+mise run dev
 
 # Build the project
-npm run build
+mise run build
 
 # Run tests
-npm test
+mise run test
 
 # Run tests in watch mode
-npm run test:watch
+mise run test:watch
 
 # Generate test coverage
-npm run test:coverage
+mise run test:coverage
 
 # Run linter
-npm run lint
+mise run lint
 
 # Type check
-npm run typecheck
+mise run typecheck
 ```
 
 ### Project Structure

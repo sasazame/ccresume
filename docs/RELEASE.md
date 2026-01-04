@@ -14,6 +14,7 @@ Before starting the release process, ensure you have:
 - npm authentication configured (`npm login`)
 - git push access to the repository
 - GitHub CLI installed and authenticated (`gh auth login`)
+- mise installed and the toolchain set up (`mise install`)
 
 ## Release Steps
 
@@ -36,16 +37,16 @@ Run all quality checks before creating a release:
 
 ```bash
 # Run linting
-npm run lint
+mise run lint
 
 # Run type checking (if applicable)
-npm run typecheck
+mise run typecheck
 
 # Run tests
-npm test
+mise run test
 
 # Verify package contents
-npm pack --dry-run
+mise exec -- npm pack --dry-run
 ```
 
 ### 3. Merge Release PR
@@ -65,13 +66,13 @@ git pull origin master
 # Then commit any changes
 
 # For bug fixes (1.0.0 → 1.0.1)
-npm version patch -m "Release v%s"
+mise exec -- npm version patch -m "Release v%s"
 
 # For new features (1.0.0 → 1.1.0)
-npm version minor -m "Release v%s"
+mise exec -- npm version minor -m "Release v%s"
 
 # For breaking changes (1.0.0 → 2.0.0)
-npm version major -m "Release v%s"
+mise exec -- npm version major -m "Release v%s"
 ```
 
 ### 5. Push Changes
@@ -87,7 +88,7 @@ git push origin master --follow-tags
 Publish the package to npm registry:
 
 ```bash
-npm publish
+mise exec -- npm publish
 ```
 
 ### 7. Create GitHub Release
@@ -96,7 +97,7 @@ Create a GitHub release using the CHANGELOG content:
 
 ```bash
 # Extract the latest version section from CHANGELOG.md
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(mise exec -- node -p "require('./package.json').version")
 NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
 
 # Create release with CHANGELOG notes
@@ -144,26 +145,26 @@ git checkout master
 git pull origin master
 
 echo "Running pre-release checks..."
-npm run lint
-npm run typecheck
-npm test
+mise run lint
+mise run typecheck
+mise run test
 
 echo "Creating release..."
-npm version "$1" -m "Release v%s"
+mise exec -- npm version "$1" -m "Release v%s"
 
 echo "Pushing to repository..."
 git push origin master --follow-tags
 
 echo "Publishing to npm..."
-npm publish
+mise exec -- npm publish
 
 echo "Creating GitHub release..."
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(mise exec -- node -p "require('./package.json').version")
 NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
 gh release create "v$VERSION" --notes "$NOTES"
 
 echo "Creating merge-back PR..."
-gh pr create --base develop --head master --title "chore: merge back v$(node -p "require('./package.json').version") release changes" --body "Merge back release changes"
+gh pr create --base develop --head master --title "chore: merge back v$(mise exec -- node -p "require('./package.json').version") release changes" --body "Merge back release changes"
 
 echo "Release complete!"
 ```
