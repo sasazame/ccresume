@@ -59,7 +59,7 @@
     "typescript-eslint": "^8.35.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "files": [
     "dist"

@@ -12,34 +12,25 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20, 22, 24]
     
     steps:
     - uses: actions/checkout@v6
     
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
+    - name: Setup mise
+      uses: jdx/mise-action@v3.5.1
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        tool_versions: node@${{ matrix.node-version }}
+        cache: true
     
     - name: Install dependencies
-      run: npm ci
+      run: mise run ci:install
     
-    - name: Run linter
-      run: npm run lint
-    
-    - name: Run type check
-      run: npm run typecheck
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Build
-      run: npm run build
+    - name: Run CI checks
+      run: mise run ci
     
     - name: Upload coverage reports
-      if: matrix.node-version == '20.x'
+      if: matrix.node-version == 24
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: false
