@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v6
     
     - name: Setup mise
-      uses: jdx/mise-action@v3.6.0
+      uses: jdx/mise-action@v4.0.1
       with:
         tool_versions: node@${{ matrix.node-version }}
         cache: true
