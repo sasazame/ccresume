@@ -52,6 +52,7 @@ describe('conversationReader', () => {
     it('ignores non-directory entries in projects dir to avoid ENOTDIR', async () => {
       // Simulates claude-code-log placing cache.db and index.html alongside project dirs.
       // readdir(projectPath) on those files throws ENOTDIR, which must be silently skipped.
+      // Also verifies that the valid sibling directory is still scanned and returns conversations.
       mockReaddir.mockImplementation((path: unknown) => {
         if (path === PROJECTS_DIR) {
           return Promise.resolve(['claude-code-log-cache.db', 'index.html', '-Users-testuser-my-project']);
@@ -62,11 +63,16 @@ describe('conversationReader', () => {
         if (path === `${PROJECTS_DIR}/index.html`) {
           return Promise.reject(makeEnotdir());
         }
+        if (path === `${PROJECTS_DIR}/-Users-testuser-my-project`) {
+          return Promise.resolve([VALID_JSONL_FILE]);
+        }
         return Promise.resolve([]);
       });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
 
       const result = await getAllConversations();
-      expect(result).toEqual([]);
+      expect(result).toHaveLength(1);
+      expect(result[0].sessionId).toBe(VALID_UUID);
     });
 
     it('scans symlinked project directories and returns conversations from them', async () => {
@@ -116,20 +122,6 @@ describe('conversationReader', () => {
       expect(result).toEqual([]);
     });
 
-    it('processes directory entries normally when no non-directory entries exist', async () => {
-      mockReaddir.mockImplementation((path: unknown) => {
-        if (path === PROJECTS_DIR) {
-          return Promise.resolve(['-Users-testuser-my-project']);
-        }
-        // project dir contains no jsonl files
-        return Promise.resolve([]);
-      });
-
-      const result = await getAllConversations();
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toEqual([]);
-    });
-
     it('returns empty array when projects dir is empty', async () => {
       mockReaddir.mockImplementation((_path: unknown) => {
         return Promise.resolve([]);
@@ -142,6 +134,7 @@ describe('conversationReader', () => {
 
   describe('getPaginatedConversations', () => {
     it('ignores non-directory entries in projects dir to avoid ENOTDIR', async () => {
+      // Also verifies that the valid sibling directory is still scanned and returns conversations.
       mockReaddir.mockImplementation((path: unknown) => {
         if (path === PROJECTS_DIR) {
           return Promise.resolve(['claude-code-log-cache.db', 'index.html', '-Users-testuser-my-project']);
@@ -152,11 +145,17 @@ describe('conversationReader', () => {
         if (path === `${PROJECTS_DIR}/index.html`) {
           return Promise.reject(makeEnotdir());
         }
+        if (path === `${PROJECTS_DIR}/-Users-testuser-my-project`) {
+          return Promise.resolve([VALID_JSONL_FILE]);
+        }
         return Promise.resolve([]);
       });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
+      mockStat.mockResolvedValue({ mtime: new Date('2026-05-07T10:00:00.000Z') });
 
       const result = await getPaginatedConversations({ limit: 10, offset: 0 });
-      expect(result.conversations).toEqual([]);
+      expect(result.conversations).toHaveLength(1);
+      expect(result.conversations[0].sessionId).toBe(VALID_UUID);
     });
 
     it('scans symlinked project directories and returns conversations from them', async () => {
