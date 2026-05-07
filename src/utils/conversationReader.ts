@@ -29,8 +29,11 @@ export async function getPaginatedConversations(options: PaginationOptions): Pro
   const allFiles: Array<{path: string, dir: string, mtime: Date}> = [];
   
   try {
-    const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
-    
+    // Skip non-directory entries (e.g. claude-code-log's cache .db / index.html) to avoid ENOTDIR.
+    const projectDirs = (await readdir(CLAUDE_PROJECTS_DIR, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
     // If filtering by directory, convert the filter path to Claude's directory name format
     const targetDir = options.currentDirFilter ? pathToClaudeDir(options.currentDirFilter) : null;
     
@@ -100,8 +103,11 @@ export async function getAllConversations(currentDirFilter?: string): Promise<Co
   const conversations: Conversation[] = [];
   
   try {
-    const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
-    
+    // Skip non-directory entries (e.g. claude-code-log's cache .db / index.html) to avoid ENOTDIR.
+    const projectDirs = (await readdir(CLAUDE_PROJECTS_DIR, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
     for (const projectDir of projectDirs) {
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
       const files = await readdir(projectPath);
