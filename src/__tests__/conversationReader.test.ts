@@ -27,6 +27,20 @@ function makeEnotdir(): Error {
   return Object.assign(new Error('ENOTDIR: not a directory'), { code: 'ENOTDIR' });
 }
 
+function makeEnoent(): Error {
+  return Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
+}
+
+const VALID_UUID = '12345678-1234-1234-1234-123456789abc';
+const VALID_JSONL_FILE = `${VALID_UUID}.jsonl`;
+const VALID_JSONL_PAYLOAD = JSON.stringify({
+  type: 'user',
+  message: { content: 'hello world' },
+  timestamp: '2026-05-07T10:00:00.000Z',
+  cwd: '/Users/testuser/my-project',
+  gitBranch: 'main',
+});
+
 describe('conversationReader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,22 +69,42 @@ describe('conversationReader', () => {
       expect(result).toEqual([]);
     });
 
-    it('scans symlinked project directories (symlink-to-dir must not be skipped)', async () => {
-      // Verifies the regression fix: Dirent.isDirectory() returns false for symlinks, but
-      // readdir() follows the link, so ENOTDIR is not thrown and the dir is scanned normally.
+    it('scans symlinked project directories and returns conversations from them', async () => {
       mockReaddir.mockImplementation((path: unknown) => {
         if (path === PROJECTS_DIR) {
           return Promise.resolve(['symlinked-project']);
         }
         if (path === `${PROJECTS_DIR}/symlinked-project`) {
-          // readdir follows the symlink and returns the actual directory contents
-          return Promise.resolve([]);
+          return Promise.resolve([VALID_JSONL_FILE]);
         }
         return Promise.resolve([]);
       });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
 
       const result = await getAllConversations();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(1);
+      expect(result[0].sessionId).toBe(VALID_UUID);
+      expect(result[0].firstMessage).toBe('hello world');
+    });
+
+    it('skips broken symlinks (ENOENT on inner readdir) without discarding sibling conversations', async () => {
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['broken-symlink', '-Users-testuser-my-project']);
+        }
+        if (path === `${PROJECTS_DIR}/broken-symlink`) {
+          return Promise.reject(makeEnoent());
+        }
+        if (path === `${PROJECTS_DIR}/-Users-testuser-my-project`) {
+          return Promise.resolve([VALID_JSONL_FILE]);
+        }
+        return Promise.resolve([]);
+      });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
+
+      const result = await getAllConversations();
+      expect(result).toHaveLength(1);
+      expect(result[0].sessionId).toBe(VALID_UUID);
     });
 
     it('returns empty array when projects dir does not exist', async () => {
@@ -125,19 +159,44 @@ describe('conversationReader', () => {
       expect(result.conversations).toEqual([]);
     });
 
-    it('scans symlinked project directories (symlink-to-dir must not be skipped)', async () => {
+    it('scans symlinked project directories and returns conversations from them', async () => {
       mockReaddir.mockImplementation((path: unknown) => {
         if (path === PROJECTS_DIR) {
           return Promise.resolve(['symlinked-project']);
         }
         if (path === `${PROJECTS_DIR}/symlinked-project`) {
-          return Promise.resolve([]);
+          return Promise.resolve([VALID_JSONL_FILE]);
         }
         return Promise.resolve([]);
       });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
+      mockStat.mockResolvedValue({ mtime: new Date('2026-05-07T10:00:00.000Z') });
 
       const result = await getPaginatedConversations({ limit: 10, offset: 0 });
-      expect(result.conversations).toEqual([]);
+      expect(result.conversations).toHaveLength(1);
+      expect(result.conversations[0].sessionId).toBe(VALID_UUID);
+      expect(result.conversations[0].firstMessage).toBe('hello world');
+    });
+
+    it('skips broken symlinks (ENOENT on inner readdir) without discarding sibling conversations', async () => {
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['broken-symlink', '-Users-testuser-my-project']);
+        }
+        if (path === `${PROJECTS_DIR}/broken-symlink`) {
+          return Promise.reject(makeEnoent());
+        }
+        if (path === `${PROJECTS_DIR}/-Users-testuser-my-project`) {
+          return Promise.resolve([VALID_JSONL_FILE]);
+        }
+        return Promise.resolve([]);
+      });
+      mockReadFile.mockResolvedValue(VALID_JSONL_PAYLOAD);
+      mockStat.mockResolvedValue({ mtime: new Date('2026-05-07T10:00:00.000Z') });
+
+      const result = await getPaginatedConversations({ limit: 10, offset: 0 });
+      expect(result.conversations).toHaveLength(1);
+      expect(result.conversations[0].sessionId).toBe(VALID_UUID);
     });
 
     it('returns empty conversations and total=0 when projects dir does not exist', async () => {

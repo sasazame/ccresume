@@ -41,18 +41,20 @@ export async function getPaginatedConversations(options: PaginationOptions): Pro
       }
 
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      // ENOTDIR means this entry is a plain file or a symlink-to-file (e.g. claude-code-log's cache
-      // .db/.html). Skip it silently; symlink-to-dir works fine because readdir follows the link.
+      // ENOTDIR: entry is a plain file or symlink-to-file (e.g. claude-code-log's .db/.html).
+      // ENOENT: entry is a broken symlink (target missing). Skip both silently;
+      // symlink-to-dir works fine because readdir follows the link.
       let dirFiles: string[];
       try {
         dirFiles = await readdir(projectPath);
       } catch (err) {
-        if ((err as NodeJS.ErrnoException).code === 'ENOTDIR') {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ENOTDIR' || code === 'ENOENT') {
           continue;
         }
         throw err;
       }
-      const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') && 
+      const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') &&
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i.test(f));
       
       for (const file of jsonlFiles) {
@@ -114,13 +116,15 @@ export async function getAllConversations(currentDirFilter?: string): Promise<Co
 
     for (const projectDir of projectDirs) {
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      // ENOTDIR means this entry is a plain file or a symlink-to-file (e.g. claude-code-log's cache
-      // .db/.html). Skip it silently; symlink-to-dir works fine because readdir follows the link.
+      // ENOTDIR: entry is a plain file or symlink-to-file (e.g. claude-code-log's .db/.html).
+      // ENOENT: entry is a broken symlink (target missing). Skip both silently;
+      // symlink-to-dir works fine because readdir follows the link.
       let files: string[];
       try {
         files = await readdir(projectPath);
       } catch (err) {
-        if ((err as NodeJS.ErrnoException).code === 'ENOTDIR') {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ENOTDIR' || code === 'ENOENT') {
           continue;
         }
         throw err;
