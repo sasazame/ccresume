@@ -29,22 +29,29 @@ export async function getPaginatedConversations(options: PaginationOptions): Pro
   const allFiles: Array<{path: string, dir: string, mtime: Date}> = [];
   
   try {
-    // Skip non-directory entries (e.g. claude-code-log's cache .db / index.html) to avoid ENOTDIR.
-    const projectDirs = (await readdir(CLAUDE_PROJECTS_DIR, { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
+    const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
 
     // If filtering by directory, convert the filter path to Claude's directory name format
     const targetDir = options.currentDirFilter ? pathToClaudeDir(options.currentDirFilter) : null;
-    
+
     for (const projectDir of projectDirs) {
       // Skip directories that don't match the filter early
       if (targetDir && projectDir !== targetDir) {
         continue;
       }
-      
+
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      const dirFiles = await readdir(projectPath);
+      // ENOTDIR means this entry is a plain file or a symlink-to-file (e.g. claude-code-log's cache
+      // .db/.html). Skip it silently; symlink-to-dir works fine because readdir follows the link.
+      let dirFiles: string[];
+      try {
+        dirFiles = await readdir(projectPath);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOTDIR') {
+          continue;
+        }
+        throw err;
+      }
       const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') && 
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i.test(f));
       
@@ -103,14 +110,21 @@ export async function getAllConversations(currentDirFilter?: string): Promise<Co
   const conversations: Conversation[] = [];
   
   try {
-    // Skip non-directory entries (e.g. claude-code-log's cache .db / index.html) to avoid ENOTDIR.
-    const projectDirs = (await readdir(CLAUDE_PROJECTS_DIR, { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
+    const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
 
     for (const projectDir of projectDirs) {
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      const files = await readdir(projectPath);
+      // ENOTDIR means this entry is a plain file or a symlink-to-file (e.g. claude-code-log's cache
+      // .db/.html). Skip it silently; symlink-to-dir works fine because readdir follows the link.
+      let files: string[];
+      try {
+        files = await readdir(projectPath);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOTDIR') {
+          continue;
+        }
+        throw err;
+      }
       const jsonlFiles = files.filter(f => f.endsWith('.jsonl'));
       
       for (const file of jsonlFiles) {

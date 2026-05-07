@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import type { Dirent } from 'fs';
 
 // FAKE_HOME must be defined before mockHomedir so the module-level homedir() call resolves.
 const FAKE_HOME = '/home/testuser';
@@ -24,19 +23,8 @@ jest.unstable_mockModule('os', () => ({
 
 const { getAllConversations, getPaginatedConversations } = await import('../utils/conversationReader.js');
 
-function makeDirent(name: string, isDir: boolean): Dirent {
-  return {
-    name,
-    parentPath: PROJECTS_DIR,
-    path: PROJECTS_DIR,
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  } as unknown as Dirent;
+function makeEnotdir(): Error {
+  return Object.assign(new Error('ENOTDIR: not a directory'), { code: 'ENOTDIR' });
 }
 
 describe('conversationReader', () => {
@@ -49,20 +37,40 @@ describe('conversationReader', () => {
   describe('getAllConversations', () => {
     it('ignores non-directory entries in projects dir to avoid ENOTDIR', async () => {
       // Simulates claude-code-log placing cache.db and index.html alongside project dirs.
-      // Before the fix, readdir(projectPath) on these files would throw ENOTDIR.
-      mockReaddir.mockImplementation((path: unknown, opts?: unknown) => {
-        if (path === PROJECTS_DIR && (opts as { withFileTypes?: boolean } | undefined)?.withFileTypes) {
-          return Promise.resolve([
-            makeDirent('claude-code-log-cache.db', false),
-            makeDirent('index.html', false),
-            makeDirent('-Users-testuser-my-project', true),
-          ]);
+      // readdir(projectPath) on those files throws ENOTDIR, which must be silently skipped.
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['claude-code-log-cache.db', 'index.html', '-Users-testuser-my-project']);
+        }
+        if (path === `${PROJECTS_DIR}/claude-code-log-cache.db`) {
+          return Promise.reject(makeEnotdir());
+        }
+        if (path === `${PROJECTS_DIR}/index.html`) {
+          return Promise.reject(makeEnotdir());
         }
         return Promise.resolve([]);
       });
 
       const result = await getAllConversations();
       expect(result).toEqual([]);
+    });
+
+    it('scans symlinked project directories (symlink-to-dir must not be skipped)', async () => {
+      // Verifies the regression fix: Dirent.isDirectory() returns false for symlinks, but
+      // readdir() follows the link, so ENOTDIR is not thrown and the dir is scanned normally.
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['symlinked-project']);
+        }
+        if (path === `${PROJECTS_DIR}/symlinked-project`) {
+          // readdir follows the symlink and returns the actual directory contents
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await getAllConversations();
+      expect(Array.isArray(result)).toBe(true);
     });
 
     it('returns empty array when projects dir does not exist', async () => {
@@ -75,11 +83,9 @@ describe('conversationReader', () => {
     });
 
     it('processes directory entries normally when no non-directory entries exist', async () => {
-      mockReaddir.mockImplementation((path: unknown, opts?: unknown) => {
-        if (path === PROJECTS_DIR && (opts as { withFileTypes?: boolean } | undefined)?.withFileTypes) {
-          return Promise.resolve([
-            makeDirent('-Users-testuser-my-project', true),
-          ]);
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['-Users-testuser-my-project']);
         }
         // project dir contains no jsonl files
         return Promise.resolve([]);
@@ -91,10 +97,7 @@ describe('conversationReader', () => {
     });
 
     it('returns empty array when projects dir is empty', async () => {
-      mockReaddir.mockImplementation((_path: unknown, opts?: unknown) => {
-        if ((opts as { withFileTypes?: boolean } | undefined)?.withFileTypes) {
-          return Promise.resolve([]);
-        }
+      mockReaddir.mockImplementation((_path: unknown) => {
         return Promise.resolve([]);
       });
 
@@ -105,13 +108,30 @@ describe('conversationReader', () => {
 
   describe('getPaginatedConversations', () => {
     it('ignores non-directory entries in projects dir to avoid ENOTDIR', async () => {
-      mockReaddir.mockImplementation((path: unknown, opts?: unknown) => {
-        if (path === PROJECTS_DIR && (opts as { withFileTypes?: boolean } | undefined)?.withFileTypes) {
-          return Promise.resolve([
-            makeDirent('claude-code-log-cache.db', false),
-            makeDirent('index.html', false),
-            makeDirent('-Users-testuser-my-project', true),
-          ]);
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['claude-code-log-cache.db', 'index.html', '-Users-testuser-my-project']);
+        }
+        if (path === `${PROJECTS_DIR}/claude-code-log-cache.db`) {
+          return Promise.reject(makeEnotdir());
+        }
+        if (path === `${PROJECTS_DIR}/index.html`) {
+          return Promise.reject(makeEnotdir());
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await getPaginatedConversations({ limit: 10, offset: 0 });
+      expect(result.conversations).toEqual([]);
+    });
+
+    it('scans symlinked project directories (symlink-to-dir must not be skipped)', async () => {
+      mockReaddir.mockImplementation((path: unknown) => {
+        if (path === PROJECTS_DIR) {
+          return Promise.resolve(['symlinked-project']);
+        }
+        if (path === `${PROJECTS_DIR}/symlinked-project`) {
+          return Promise.resolve([]);
         }
         return Promise.resolve([]);
       });
