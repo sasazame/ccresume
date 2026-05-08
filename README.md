@@ -97,7 +97,7 @@ ccresume . --hide --dangerously-skip-permissions
 
 ## Requirements
 
-- **Node.js** 20 / 22 / 24 (LTS)
+- **Node.js** 22 / 24 (LTS)
 - **Claude Code** - Must be installed and configured
 - **Operating System** - Works on macOS, Linux, and Windows (both native & WSL)
 

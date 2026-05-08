@@ -4,10 +4,10 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     reviewers:
       - "sasazame"
     labels:
@@ -33,6 +33,11 @@ updates:
           - "ts-jest"
           - "*testing*"
     ignore:
+      # Prefer intentional major upgrades after validating ecosystem stability.
+      - dependency-name: "typescript"
+        versions: [">=6.0.0"]
+      - dependency-name: "eslint"
+        versions: [">=10.0.0"]
       # Ink doesn't support React 19 yet
       - dependency-name: "react"
         versions: [">=19.0.0"]
@@ -43,7 +48,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "04:00"
     reviewers:
