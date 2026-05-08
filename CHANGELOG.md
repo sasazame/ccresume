@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-05-08
+
+### Added
+- GitHub Actions based npm publishing via trusted publishing (OIDC)
+- npm provenance-ready release workflow triggered by GitHub Releases
+- Regression tests for non-directory and broken symlink entries in Claude project scanning
+
+### Changed
+- Raised the supported Node.js runtime to 22 / 24 LTS
+- Moved local tooling and CI workflows onto the mise-based workflow
+- Switched dependency update policy to monthly Dependabot review windows
+- Updated the release process documentation for automated npm publishing
+- Refreshed stable dependency and GitHub Action versions across the project
+
+### Fixed
+- Skip plain files and broken symlinks when scanning `~/.claude/projects` for conversations
+
 ## [1.0.0] - 2025-08-06
 
 ### Added
