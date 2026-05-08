@@ -35,6 +35,9 @@
     "url": "https://github.com/sasazame/ccresume/issues"
   },
   "homepage": "https://github.com/sasazame/ccresume#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "clipboardy": "^5.3.1",
