@@ -8,12 +8,38 @@ This project follows a develop/master branch strategy:
 - `develop`: Main development branch where features are integrated
 - `master`: Production branch for releases
 
+## Publishing Model
+
+This project publishes to npm via GitHub Actions using npm trusted publishing (OIDC).
+
+Why this is the current preferred model:
+- No long-lived npm automation token is required
+- npm provenance is generated automatically for public packages
+- Publishing is tied to a recorded GitHub release workflow run
+
+The publish workflow lives at `.github/workflows/publish.yml` and runs when a GitHub Release is published.
+
+## One-time Setup
+
+Before the first release with this workflow, ensure the following is configured:
+
+1. On npmjs.com, open the package settings for `@sasazame/ccresume`
+2. Add a Trusted Publisher for GitHub Actions
+3. Configure it with:
+   - Organization or user: `sasazame`
+   - Repository: `ccresume`
+   - Workflow filename: `publish.yml`
+4. After trusted publishing is verified, enable:
+   - `Require two-factor authentication and disallow tokens`
+
 ## Prerequisites
 
 Before starting the release process, ensure you have:
-- npm authentication configured (`npm login`)
 - git push access to the repository
 - GitHub CLI installed and authenticated (`gh auth login`)
+- mise installed and the toolchain set up (`mise install`)
+
+You do not need `npm login` for normal releases once trusted publishing is configured.
 
 ## Release Steps
 
@@ -22,11 +48,9 @@ Before starting the release process, ensure you have:
 Create a pull request from `develop` to `master`:
 
 ```bash
-# Ensure develop is up to date
 git checkout develop
 git pull origin develop
 
-# Create PR
 gh pr create --base master --head develop --title "Release vX.X.X" --body "Release description"
 ```
 
@@ -35,46 +59,37 @@ gh pr create --base master --head develop --title "Release vX.X.X" --body "Relea
 Run all quality checks before creating a release:
 
 ```bash
-# Run linting
-npm run lint
-
-# Run type checking (if applicable)
-npm run typecheck
-
-# Run tests
-npm test
-
-# Verify package contents
-npm pack --dry-run
+mise run ci
+mise run ci:matrix
+mise exec -- npm pack --dry-run
 ```
 
 ### 3. Merge Release PR
 
-After PR approval and CI checks pass, merge the PR to master.
+After PR approval and CI checks pass, merge the PR to `master`.
 
-### 4. Update Version
+### 4. Update Version on `master`
 
-After merging, switch to master and update the version:
+After merging, switch to `master` and update the version:
 
 ```bash
-# Switch to master and pull latest
 git checkout master
 git pull origin master
 
 # Update CHANGELOG.md if needed (add release date)
 # Then commit any changes
 
-# For bug fixes (1.0.0 → 1.0.1)
-npm version patch -m "Release v%s"
+# For bug fixes (1.0.0 -> 1.0.1)
+mise exec -- npm version patch -m "Release v%s"
 
-# For new features (1.0.0 → 1.1.0)
-npm version minor -m "Release v%s"
+# For new features (1.0.0 -> 1.1.0)
+mise exec -- npm version minor -m "Release v%s"
 
-# For breaking changes (1.0.0 → 2.0.0)
-npm version major -m "Release v%s"
+# For breaking changes (1.0.0 -> 2.0.0)
+mise exec -- npm version major -m "Release v%s"
 ```
 
-### 5. Push Changes
+### 5. Push Version Commit and Tag
 
 Push the version commit and tag to the remote repository:
 
@@ -82,30 +97,31 @@ Push the version commit and tag to the remote repository:
 git push origin master --follow-tags
 ```
 
-### 6. Publish to npm
-
-Publish the package to npm registry:
-
-```bash
-npm publish
-```
-
-### 7. Create GitHub Release
+### 6. Create GitHub Release
 
 Create a GitHub release using the CHANGELOG content:
 
 ```bash
-# Extract the latest version section from CHANGELOG.md
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(mise exec -- node -p "require('./package.json').version")
 NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
 
-# Create release with CHANGELOG notes
 gh release create "v$VERSION" --notes "$NOTES"
 ```
 
+Publishing to npm is triggered by this GitHub Release event.
+
+### 7. Verify Publish Workflow
+
+Confirm the `Publish` workflow succeeds and that the package appears on npm with the expected version.
+
+Recommended checks:
+- GitHub Actions `Publish` workflow completed successfully
+- npm package version is visible on npmjs.com
+- provenance information is attached on npmjs.com
+
 ### 8. Merge Back to Develop
 
-Create a PR to merge master back to develop to keep branches in sync:
+Create a PR to merge `master` back to `develop` to keep branches in sync:
 
 ```bash
 gh pr create --base develop --head master --title "chore: merge back vX.X.X release changes" --body "Merge back release changes"
@@ -121,66 +137,29 @@ Follow [Semantic Versioning](https://semver.org/):
 
 ## Changelog
 
-Update the CHANGELOG.md file following the [Keep a Changelog](https://keepachangelog.com/) format:
+Update the `CHANGELOG.md` file following the [Keep a Changelog](https://keepachangelog.com/) format:
 - Update during development in the `develop` branch under `[Unreleased]`
 - Move changes to a versioned section when creating the release
 
-## Quick Release Script
+## Notes
 
-For the develop/master workflow, the release process requires manual PR creation and merging. 
-The automated steps after PR merge can be scripted:
-
-```bash
-#!/bin/bash
-# release-after-merge.sh
-
-# Exit on error
-set -e
-
-# This script should be run after merging develop to master
-
-echo "Switching to master..."
-git checkout master
-git pull origin master
-
-echo "Running pre-release checks..."
-npm run lint
-npm run typecheck
-npm test
-
-echo "Creating release..."
-npm version "$1" -m "Release v%s"
-
-echo "Pushing to repository..."
-git push origin master --follow-tags
-
-echo "Publishing to npm..."
-npm publish
-
-echo "Creating GitHub release..."
-VERSION=$(node -p "require('./package.json').version")
-NOTES=$(awk "/^## \[$VERSION\]/{flag=1;next}/^## \[/{flag=0}flag" CHANGELOG.md)
-gh release create "v$VERSION" --notes "$NOTES"
-
-echo "Creating merge-back PR..."
-gh pr create --base develop --head master --title "chore: merge back v$(node -p "require('./package.json').version") release changes" --body "Merge back release changes"
-
-echo "Release complete!"
-```
-
-Usage: `./release-after-merge.sh patch|minor|major`
+- The package is scoped and public, so `publishConfig.access=public` is set in `package.json`
+- The publish workflow validates that the GitHub release tag matches the `package.json` version
+- The publish workflow runs its own install, checks, build, and `npm pack --dry-run` before calling `npm publish`
 
 ## Troubleshooting
 
-### npm publish fails
-- Ensure you're logged in: `npm whoami`
-- Check registry: `npm config get registry`
-- Verify package name availability: `npm info <package-name>`
+### Publish workflow fails before publish
+- Check that the release tag matches `package.json` version
+- Check that npm trusted publisher is configured for `publish.yml`
+- Confirm the workflow is running on a GitHub-hosted runner
 
-### Git push fails
-- Ensure you have push access to the repository
-- Check if branch protection rules are blocking the push
-- Verify remote URL: `git remote -v`
+### npm publish authentication fails
+- Verify trusted publishing is configured on npm for this repository and workflow
+- If you recently changed the workflow filename, update the npm Trusted Publisher configuration
+
+### Package is not public on npm
+- Ensure `publishConfig.access` remains set to `public`
 
 ### Version conflicts
 - Always pull latest changes before releasing: `git pull origin master`

@@ -30,19 +30,31 @@ export async function getPaginatedConversations(options: PaginationOptions): Pro
   
   try {
     const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
-    
+
     // If filtering by directory, convert the filter path to Claude's directory name format
     const targetDir = options.currentDirFilter ? pathToClaudeDir(options.currentDirFilter) : null;
-    
+
     for (const projectDir of projectDirs) {
       // Skip directories that don't match the filter early
       if (targetDir && projectDir !== targetDir) {
         continue;
       }
-      
+
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      const dirFiles = await readdir(projectPath);
-      const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') && 
+      // ENOTDIR: entry is a plain file or symlink-to-file (e.g. claude-code-log's .db/.html).
+      // ENOENT: entry is a broken symlink (target missing). Skip both silently;
+      // symlink-to-dir works fine because readdir follows the link.
+      let dirFiles: string[];
+      try {
+        dirFiles = await readdir(projectPath);
+      } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ENOTDIR' || code === 'ENOENT') {
+          continue;
+        }
+        throw err;
+      }
+      const jsonlFiles = dirFiles.filter(f => f.endsWith('.jsonl') &&
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i.test(f));
       
       for (const file of jsonlFiles) {
@@ -101,10 +113,22 @@ export async function getAllConversations(currentDirFilter?: string): Promise<Co
   
   try {
     const projectDirs = await readdir(CLAUDE_PROJECTS_DIR);
-    
+
     for (const projectDir of projectDirs) {
       const projectPath = join(CLAUDE_PROJECTS_DIR, projectDir);
-      const files = await readdir(projectPath);
+      // ENOTDIR: entry is a plain file or symlink-to-file (e.g. claude-code-log's .db/.html).
+      // ENOENT: entry is a broken symlink (target missing). Skip both silently;
+      // symlink-to-dir works fine because readdir follows the link.
+      let files: string[];
+      try {
+        files = await readdir(projectPath);
+      } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ENOTDIR' || code === 'ENOENT') {
+          continue;
+        }
+        throw err;
+      }
       const jsonlFiles = files.filter(f => f.endsWith('.jsonl'));
       
       for (const file of jsonlFiles) {

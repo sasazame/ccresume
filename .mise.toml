@@ -1,0 +1,63 @@
+[tools]
+node = "lts"
+lefthook = "latest"
+
+[tasks.setup]
+description = "Install dependencies"
+run = "npm install"
+
+[tasks."hooks:install"]
+description = "Install git hooks via lefthook"
+run = "lefthook install"
+
+[tasks.ci]
+description = "Run CI checks locally"
+run = ["mise run lint", "mise run typecheck", "mise run test", "mise run build"]
+
+[tasks."ci:node22"]
+description = "Run CI on Node 22"
+run = "mise exec node@22 -- mise run ci"
+
+[tasks."ci:node24"]
+description = "Run CI on Node 24"
+run = "mise exec node@24 -- mise run ci"
+
+[tasks."ci:matrix"]
+description = "Run CI on supported Node versions (22/24)"
+run = ["mise run ci:node22", "mise run ci:node24"]
+
+[tasks.init]
+description = "Initial setup (deps + hooks)"
+run = ["mise run setup", "mise run hooks:install"]
+
+[tasks."ci:install"]
+description = "Install dependencies for CI"
+run = "npm ci"
+
+[tasks.dev]
+description = "Run in development mode"
+run = "npm run dev"
+
+[tasks.build]
+description = "Build the project"
+run = "npm run build"
+
+[tasks.lint]
+description = "Run linter"
+run = "npm run lint"
+
+[tasks.typecheck]
+description = "Run type checks"
+run = "npm run typecheck"
+
+[tasks.test]
+description = "Run tests"
+run = "npm test"
+
+[tasks."test:watch"]
+description = "Run tests in watch mode"
+run = "npm run test:watch"
+
+[tasks."test:coverage"]
+description = "Run tests with coverage"
+run = "npm run test:coverage"
