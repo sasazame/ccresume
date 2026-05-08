@@ -123,7 +123,7 @@ describe('conversationReader', () => {
     });
 
     it('returns empty array when projects dir is empty', async () => {
-      mockReaddir.mockImplementation((_path: unknown) => {
+      mockReaddir.mockImplementation(() => {
         return Promise.resolve([]);
       });
 
