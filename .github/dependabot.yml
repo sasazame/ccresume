@@ -38,6 +38,8 @@ updates:
         versions: [">=6.0.0"]
       - dependency-name: "eslint"
         versions: [">=10.0.0"]
+      - dependency-name: "ink"
+        versions: [">=7.0.0"]
       # Ink doesn't support React 19 yet
       - dependency-name: "react"
         versions: [">=19.0.0"]
