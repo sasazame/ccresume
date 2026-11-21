@@ -1,5 +1,10 @@
 # ccresume
 
+> [!IMPORTANT]
+> **Maintenance has ended.** Published versions of `@sasazame/ccresume` remain available on npm. This project will no longer receive fixes or compatibility updates.
+>
+> To browse and resume sessions using the built-in picker, run `claude --resume`.
+
 A character user interface (CUI) tool for browsing and resuming Claude Code conversations.
 
 ![ccresume screenshot](docs/images/demo-screenshot.png)
